@@ -3,7 +3,7 @@ import { create } from "zustand";
 export const apiURL =
   window.location.hostname === "localhost"
     ? "http://localhost:8051"
-    : "https://backend-logistic1.jjm-manufacturing.com";
+    : "https://hospital-hr3.onrender.com";
 
 const useBearStore = create((set) => ({
   bears: 0,
