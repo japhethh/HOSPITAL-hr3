@@ -182,7 +182,7 @@ const Employee = () => {
 
   return (
     <div className="p-4">
-      <PayrollSystemItem />
+      <PayrollSystemItem data={employeeData} title={'Employee Data'}/>
 
       <div className="flex justify-end items-center">
         <button

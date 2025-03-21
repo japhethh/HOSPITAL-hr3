@@ -286,7 +286,7 @@ const Leave = () => {
 
   return (
     <div className="p-4">
-      <PayrollSystemItem />
+      <PayrollSystemItem data={leaveData} title={'Leave Data'}/>
 
       <div className="flex justify-end items-center">
         <button

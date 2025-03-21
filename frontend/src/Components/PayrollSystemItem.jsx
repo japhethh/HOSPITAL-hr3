@@ -1,8 +1,8 @@
-const PayrollSystemItem = () => {
+const PayrollSystemItem = ({data , title}) => {
   const cardItems = [
     {
-      title: "All",
-      value: "20",
+      title: title,
+      value: data.length,
       color: "bg-blue-500",
     },
   ];

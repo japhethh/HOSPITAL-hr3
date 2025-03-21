@@ -194,7 +194,7 @@ const TimeAndAttendance = () => {
 
   return (
     <div className="p-4">
-      <PayrollSystemItem />
+      <PayrollSystemItem data={attendanceData} title={'Time And Attendance Data'}/>
 
       <div className="flex justify-end items-center">
         <button

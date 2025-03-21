@@ -231,7 +231,7 @@ const EmployeeAssistantProgram = () => {
 
   return (
     <div className="p-4">
-      <PayrollSystemItem />
+      <PayrollSystemItem data={assistantData} title={'Employee Assistant Data'}/>
 
       <div className="flex justify-end items-center">
         <button
