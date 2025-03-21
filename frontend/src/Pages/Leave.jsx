@@ -25,6 +25,21 @@ const Leave = () => {
     rejectionReason: "",
   });
 
+  // Fetch
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      const response = await axios.get(`${apiURL}/api/leave`);
+      console.log(response.data);
+      setSelectedLeave(response.data);
+    } catch (error) {
+      console.log(error?.response.data.message);
+    }
+  };
+
   // const [leaveData, setLeaveData] = useState([]);
   // Fetch leave data from the API
   const data = [
@@ -123,8 +138,9 @@ const Leave = () => {
   const handleCreateLeave = async () => {
     try {
       const response = await axios.post(`${apiURL}/api/leave`, newLeaveData);
-      // setLeaveData([...leaveData, response.data]);
-      toast.success("Leave created successfully!");
+
+      fetchData();
+      toast.success("Created Successfully!");
       setCreateModalOpen(false);
       setNewLeaveData({
         employeeId: "",
@@ -139,24 +155,27 @@ const Leave = () => {
         approvalDate: "",
         rejectionReason: "",
       });
+      toast.success("Leave created successfully!");
     } catch (error) {
-      console.error("Error creating leave:", error);
-      toast.error("Failed to create leave.");
+      console.log(error?.response.data.message);
     }
   };
 
   const handleDeleteLeave = async () => {
     try {
-      await axios.delete(`${apiURL}/api/leave/${selectedLeave._id}`);
-      // setLeaveData(
-      //   leaveData.filter((leave) => leave._id !== selectedLeave._id)
-      // );
-      toast.success("Leave deleted successfully!");
-      setShowModal(false);
+      const response = await axios.delete(
+        `${apiURL}/api/leave/${selectedLeave._id}`
+      );
+
+      toast.info("Deleted Successfully!");
+
+      fetchData();
     } catch (error) {
-      console.error("Error deleting leave:", error);
-      toast.error("Failed to delete leave.");
+      console.log(error?.response.data.message);
+      toast.error("Failed to update payroll");
     }
+    toast.success("Leave deleted successfully!");
+    setShowModal(false);
   };
 
   const handleEditClick = (leave) => {
@@ -171,11 +190,7 @@ const Leave = () => {
         `${apiURL}/api/leave/${selectedLeave._id}`,
         newLeaveData
       );
-      // setLeaveData(
-      //   leaveData.map((leave) =>
-      //     leave._id === selectedLeave._id ? response.data : leave
-      //   )
-      // );
+
       toast.success("Leave updated successfully!");
       setEditModalOpen(false);
     } catch (error) {

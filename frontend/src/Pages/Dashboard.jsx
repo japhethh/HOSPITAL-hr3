@@ -12,6 +12,12 @@ import Overview from "../Components/Overview";
 import { MdDashboard } from "react-icons/md";
 import { MdSupervisorAccount } from "react-icons/md";
 import { IoIosLogOut } from "react-icons/io";
+import { IoMdTime } from "react-icons/io";
+import { CgProfile } from "react-icons/cg";
+import { MdOutlineAssistantPhoto } from "react-icons/md";
+import { MdAssistant } from "react-icons/md";
+import { FcLeave } from "react-icons/fc";
+import { FaRegMoneyBillAlt } from "react-icons/fa";
 
 import AdminData from "../Components/AdminData";
 import HrData from "../Components/HrData";
@@ -25,6 +31,7 @@ import EmployeeEngagement from "./EmployeeEngagement";
 import Employee from "./Employee";
 import Leave from "./Leave";
 import Salary from "./Salary";
+import { PiPlantDuotone } from "react-icons/pi";
 
 function AdminPage() {
   const [isToggled, setIsToggled] = useState(true);
@@ -106,19 +113,19 @@ function AdminPage() {
               <ul className="menu menu-vertical">
                 <li className="font-semibold">
                   <NavLink to="payrollSystem" activeClassName="bg-gray-700">
-                    <CiDatabase />
+                    <PiPlantDuotone />
                     Payroll System
                   </NavLink>
                 </li>
                 <li className="font-semibold">
                   <NavLink to="timeAndAttendance" activeClassName="bg-gray-700">
-                    <CiDatabase />
+                    <IoMdTime />
                     Time And Attendance
                   </NavLink>
                 </li>
                 <li className="font-semibold">
                   <NavLink to="employee" activeClassName="bg-gray-700">
-                    <CiDatabase />
+                    <CgProfile />
                     Employee
                   </NavLink>
                 </li>
@@ -127,7 +134,7 @@ function AdminPage() {
                     to="employeeAssistantProgram"
                     activeClassName="bg-gray-700"
                   >
-                    <CiDatabase />
+                    <MdOutlineAssistantPhoto />
                     Employee Assistant Program
                   </NavLink>
                 </li>
@@ -136,25 +143,23 @@ function AdminPage() {
                     to="employeeEngagement"
                     activeClassName="bg-gray-700"
                   >
-                    <CiDatabase />
+                    <MdAssistant />
                     Employee Engagement
                   </NavLink>
                 </li>
                 <li className="font-semibold">
                   <NavLink to="leave" activeClassName="bg-gray-700">
-                    <CiDatabase />
+                    <FcLeave className="text-black"/>
                     Leave
                   </NavLink>
                 </li>
                 <li className="font-semibold">
                   <NavLink to="salary" activeClassName="bg-gray-700">
-                    <CiDatabase />
+                    <FaRegMoneyBillAlt  />
                     Salary
                   </NavLink>
                 </li>
-                <h1 className="text-center border-b border-t border-gray-400 border-dotted text-md bg-slate-100">
-                  USER MANAGEMENT
-                </h1>
+
                 <li className="font-semibold">
                   <NavLink
                     to="accountsManagement"

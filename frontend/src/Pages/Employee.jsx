@@ -106,14 +106,6 @@ const Employee = () => {
     },
   ];
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setNewEmployeeData({
-      ...newEmployeeData,
-      [name]: value,
-    });
-  };
-
   const handleCreateEmployee = async () => {
     // try {
     //   const response = await axios.post(

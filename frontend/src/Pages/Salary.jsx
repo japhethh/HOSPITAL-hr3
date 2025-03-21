@@ -21,6 +21,20 @@ const Salary = () => {
     status: "Pending",
   });
 
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      const response = await axios.get(`${apiURL}/api/salary`);
+      console.log(response.data);
+      setSelectedSalary(response.data);
+    } catch (error) {
+      console.log(error?.response.data.message);
+    }
+  };
+
   // Example Salary Data
   const data = [
     {
@@ -69,7 +83,6 @@ const Salary = () => {
   const handleCreateSalary = async () => {
     try {
       const response = await axios.post(`${apiURL}/api/salary`, newSalaryData);
-      // setSalaryData([...salaryData, response.data]);
       toast.success("Salary record created successfully!");
       setCreateModalOpen(false);
       setNewSalaryData({
@@ -90,7 +103,6 @@ const Salary = () => {
   const handleDeleteSalary = async () => {
     try {
       await axios.delete(`${apiURL}/api/salary/${selectedSalary._id}`);
-      // setSalaryData(salaryData.filter((salary) => salary._id !== selectedSalary._id));
       toast.success("Salary record deleted successfully!");
       setShowModal(false);
     } catch (error) {
@@ -111,11 +123,6 @@ const Salary = () => {
         `${apiURL}/api/salary/${selectedSalary._id}`,
         newSalaryData
       );
-      // setSalaryData(
-      //   salaryData.map((salary) =>
-      //     salary._id === selectedSalary._id ? response.data : salary
-      //   )
-      // );
       toast.success("Salary record updated successfully!");
       setEditModalOpen(false);
     } catch (error) {

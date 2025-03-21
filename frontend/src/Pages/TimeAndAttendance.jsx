@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import DataTable from "datatables.net-dt";
 import PayrollSystemItem from "../Components/PayrollSystemItem";
+import axios from "axios";
+import { apiURL } from "../context/Store";
+import { toast } from "react-toastify";
 
 const TimeAndAttendance = () => {
   const [attendanceData, setAttendanceData] = useState([]);
@@ -49,6 +52,21 @@ const TimeAndAttendance = () => {
     },
   ];
 
+  // Fetch
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      const response = await axios.get(`${apiURL}/api/timeAndAttendance`);
+      console.log(response.data);
+      setAttendanceData(response.data);
+    } catch (error) {
+      console.log(error?.response.data.message);
+    }
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setNewAttendanceData({
@@ -57,30 +75,43 @@ const TimeAndAttendance = () => {
     });
   };
 
-  const handleCreateAttendance = () => {
-    console.log("New Attendance Data:", newAttendanceData);
-    const updatedData = [...data, newAttendanceData];
-    setAttendanceData(updatedData);
-    setCreateModalOpen(false);
-    setNewAttendanceData({
-      employeeId: "",
-      date: "",
-      clockIn: "",
-      clockOut: "",
-      totalHours: 0,
-      status: "Present",
-      remarks: "",
-    });
+  const handleCreateAttendance = async () => {
+    try {
+      const response = await axios.post(
+        `${apiURL}/api/timeAndAttendance/`,
+        newAttendanceData
+      );
+
+      fetchData();
+      toast.success(response.data.message);
+      setCreateModalOpen(false);
+      setNewAttendanceData({
+        employeeId: "",
+        date: "",
+        clockIn: "",
+        clockOut: "",
+        totalHours: 0,
+        status: "Present",
+        remarks: "",
+      });
+      toast.success("Created Successfully");
+    } catch (error) {
+      console.log(error?.response.data.message);
+    }
   };
 
-  const handleDelete = () => {
-    if (selectedData) {
-      const updatedData = attendanceData.filter(
-        (item) => item.employeeId !== selectedData.employeeId
+  const handleDelete = async () => {
+    try {
+      const response = await axios.delete(
+        `${apiURL}/api/timeAndAttendance/${selectedData?._id}`
       );
-      setAttendanceData(updatedData);
-      setShowModal(false);
-      setSelectedData(null);
+
+      toast.info("Deleted Successfully!");
+
+      fetchData();
+    } catch (error) {
+      console.log(error?.response.data.message);
+      toast.error("Failed to update payroll");
     }
   };
 

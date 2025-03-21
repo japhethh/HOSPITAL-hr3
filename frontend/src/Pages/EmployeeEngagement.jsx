@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import DataTable from "datatables.net-dt";
 import PayrollSystemItem from "../Components/PayrollSystemItem";
+import axios from "axios";
+import { apiURL } from "../context/Store";
+import { toast } from "react-toastify";
 
 const EmployeeEngagement = () => {
   const [engagementData, setEngagementData] = useState([]);
@@ -19,6 +22,21 @@ const EmployeeEngagement = () => {
     outcome: "Neutral",
     remarks: "",
   });
+
+  // Fetch
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      const response = await axios.get(`${apiURL}/api/employeeEngagement`);
+      console.log(response.data);
+      setEngagementData(response.data);
+    } catch (error) {
+      console.log(error?.response.data.message);
+    }
+  };
 
   // Sample data for employee engagement
   const data = [
@@ -62,31 +80,43 @@ const EmployeeEngagement = () => {
     });
   };
 
-  const handleCreateEngagement = () => {
-    console.log("New Engagement Data:", newEngagementData);
-    const updatedData = [...data, newEngagementData];
-    setEngagementData(updatedData);
-    setCreateModalOpen(false);
-    setNewEngagementData({
-      employeeId: "",
-      engagementType: "Survey",
-      engagementDate: "",
-      engagementDetails: "",
-      facilitator: "",
-      status: "Pending",
-      outcome: "Neutral",
-      remarks: "",
-    });
+  const handleCreateEngagement = async () => {
+    try {
+      const response = await axios.post(
+        `${apiURL}/api/employeeEngagement/`,
+        newEngagementData
+      );
+
+      fetchData();
+      toast.success("Created Successfully!");
+      setCreateModalOpen(false);
+      setNewEngagementData({
+        employeeId: "",
+        engagementType: "Survey",
+        engagementDate: "",
+        engagementDetails: "",
+        facilitator: "",
+        status: "Pending",
+        outcome: "Neutral",
+        remarks: "",
+      });
+    } catch (error) {
+      console.log(error?.response.data.message);
+    }
   };
 
-  const handleDelete = () => {
-    if (selectedData) {
-      const updatedData = engagementData.filter(
-        (item) => item.employeeId !== selectedData.employeeId
+  const handleDelete = async () => {
+    try {
+      const response = await axios.delete(
+        `${apiURL}/api/employeeEngagement/${selectedData._id}`
       );
-      setEngagementData(updatedData);
-      setShowModal(false);
-      setSelectedData(null);
+
+      toast.info("Deleted Successfully!");
+
+      fetchData();
+    } catch (error) {
+      console.log(error?.response.data.message);
+      toast.error("Failed to update payroll");
     }
   };
 
@@ -98,7 +128,22 @@ const EmployeeEngagement = () => {
   };
 
   // Function to handle update engagement
-  const handleUpdateEngagement = () => {
+  const handleUpdateEngagement = async () => {
+    try {
+      const response = await axios.put(
+        `${apiURL}/api/employeeEngagement/${selectedData._id}`,
+        selectedData
+      );
+
+      fetchData();
+      toast.success(response.data.message);
+
+      setShowModal(false);
+      setSelectedData(null);
+    } catch (error) {
+      console.log(error?.response.data.message);
+      toast.error("Failed to update payroll");
+    }
     const updatedData = engagementData.map((item) =>
       item.employeeId === selectedData.employeeId ? newEngagementData : item
     );

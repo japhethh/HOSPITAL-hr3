@@ -135,18 +135,18 @@ const PayrollSystem = () => {
       status: "Active",
     },
   ];
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    if (modalType === "edit" && selectedData) {
-      setSelectedData({
-        ...selectedData,
-        [name]: value,
-      });
-    } else {
-      setNewPayrollData({
-        ...newPayrollData,
-        [name]: value,
-      });
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      const response = await axios.get(`${apiURL}/api/payrollSystem`);
+      console.log(response.data);
+      setInventoryData(response.data);
+    } catch (error) {
+      console.log(error?.response.data.message);
     }
   };
 
@@ -157,6 +157,7 @@ const PayrollSystem = () => {
         newPayrollData
       );
 
+      fetchData();
       toast.success(response.data.message);
     } catch (error) {
       console.log(error?.response.data.message);
@@ -176,20 +177,33 @@ const PayrollSystem = () => {
     });
   };
 
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    if (modalType === "edit" && selectedData) {
+      setSelectedData({
+        ...selectedData,
+        [name]: value,
+      });
+    } else {
+      setNewPayrollData({
+        ...newPayrollData,
+        [name]: value,
+      });
+    }
+  };
+
   const handleUpdatePayroll = async () => {
     try {
       const response = await axios.put(
-        `${apiURL}/api/payrollSystem/${selectedData.employeeId}`,
+        `${apiURL}/api/payrollSystem/${selectedData._id}`,
         selectedData
       );
 
+      fetchData();
       toast.success(response.data.message);
 
       // Update the local state if needed
-      const updatedData = inventoryData.map((item) =>
-        item.employeeId === selectedData.employeeId ? selectedData : item
-      );
-      setInventoryData(updatedData);
+      setInventoryData(response.data.message);
 
       setShowModal(false);
       setSelectedData(null);
@@ -199,7 +213,19 @@ const PayrollSystem = () => {
     }
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
+    try {
+      const response = await axios.delete(
+        `${apiURL}/api/payrollSystem/${selectedData?._id}`
+      );
+
+      toast.info("Deleted Successfully!");
+
+      fetchData();
+    } catch (error) {
+      console.log(error?.response.data.message);
+      toast.error("Failed to update payroll");
+    }
     if (selectedData) {
       const updatedData = inventoryData.filter(
         (item) => item.employeeId !== selectedData.employeeId

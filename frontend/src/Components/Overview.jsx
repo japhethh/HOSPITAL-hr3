@@ -130,8 +130,6 @@ const OverView = () => {
         );
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
-        toast.error("Failed to load dashboard data.");
-
         // Use mock data if API fails
         setLeaveRequests(mockLeaveRequests);
         setSalaryRecords(mockSalaryRecords);

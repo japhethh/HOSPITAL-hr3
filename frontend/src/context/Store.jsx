@@ -2,7 +2,7 @@ import { create } from "zustand";
 
 export const apiURL =
   window.location.hostname === "localhost"
-    ? "http://localhost:3000"
+    ? "http://localhost:8051"
     : "https://backend-logistic1.jjm-manufacturing.com";
 
 const useBearStore = create((set) => ({

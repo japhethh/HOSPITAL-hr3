@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import DataTable from "datatables.net-dt";
 import PayrollSystemItem from "../Components/PayrollSystemItem";
+import axios from "axios";
+import { apiURL } from "../context/Store";
+import { toast } from "react-toastify";
 
 const EmployeeAssistantProgram = () => {
   const [assistantData, setAssistantData] = useState([]);
@@ -17,6 +20,23 @@ const EmployeeAssistantProgram = () => {
     status: "Active",
     remarks: "",
   });
+
+  // Fetch
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      const response = await axios.get(
+        `${apiURL}/api/employeeAssistantProgram`
+      );
+      console.log(response.data);
+      setAssistantData(response.data);
+    } catch (error) {
+      console.log(error?.response.data.message);
+    }
+  };
 
   // Sample data for employee assistant programs
   const data = [
@@ -54,29 +74,41 @@ const EmployeeAssistantProgram = () => {
     });
   };
 
-  const handleCreateAssistantProgram = () => {
-    console.log("New Assistant Program Data:", newAssistantData);
-    const updatedData = [...data, newAssistantData];
-    setAssistantData(updatedData);
-    setCreateModalOpen(false);
-    setNewAssistantData({
-      employeeId: "",
-      programName: "",
-      startDate: "",
-      endDate: "",
-      status: "Active",
-      remarks: "",
-    });
+  const handleCreateAssistantProgram = async () => {
+    try {
+      const response = await axios.post(
+        `${apiURL}/api/employeeAssistantProgram/`,
+        newAssistantData
+      );
+
+      fetchData();
+      toast.success("Created Successfully!");
+      setCreateModalOpen(false);
+      setNewAssistantData({
+        employeeId: "",
+        programName: "",
+        startDate: "",
+        endDate: "",
+        status: "Active",
+        remarks: "",
+      });
+    } catch (error) {
+      console.log(error?.response.data.message);
+    }
   };
 
-  const handleDelete = () => {
-    if (selectedData) {
-      const updatedData = assistantData.filter(
-        (item) => item.employeeId !== selectedData.employeeId
+  const handleDelete = async () => {
+    try {
+      const response = await axios.delete(
+        `${apiURL}/api/employeeAssistantProgram/${selectedData._id}`
       );
-      setAssistantData(updatedData);
-      setShowModal(false);
-      setSelectedData(null);
+
+      toast.info("Deleted Successfully!");
+
+      fetchData();
+    } catch (error) {
+      console.log(error?.response.data.message);
+      toast.error("Failed to update payroll");
     }
   };
 
@@ -88,13 +120,27 @@ const EmployeeAssistantProgram = () => {
   };
 
   // Function to handle update assistant program
-  const handleUpdateAssistantProgram = () => {
-    const updatedData = assistantData.map((item) =>
-      item.employeeId === selectedData.employeeId ? newAssistantData : item
-    );
-    setAssistantData(updatedData);
-    setEditModalOpen(false); // Close the edit modal
-    setSelectedData(null); // Reset selected data
+  const handleUpdateAssistantProgram = async () => {
+    try {
+      const response = await axios.put(
+        `${apiURL}/api/employeeAssistantProgram/${selectedData._id}`,
+        selectedData
+      );
+
+      fetchData();
+      toast.success(response.data.message);
+
+      // Update the local state if needed
+
+      setShowModal(false);
+      setSelectedData(null);
+
+      setEditModalOpen(false); // Close the edit modal
+      setSelectedData(null); // Reset selected data
+    } catch (error) {
+      console.log(error?.response.data.message);
+      toast.error("Failed to update payroll");
+    }
   };
 
   useEffect(() => {

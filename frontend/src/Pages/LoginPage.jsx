@@ -59,8 +59,8 @@ const LoginPage = () => {
       <div className="w-1/2 bg-white flex flex-col items-center justify-center p-8">
         {/* Logo */}
         <div className="mb-6">
-          <img src={Logo} alt="Finance Department" className="h-23 w-auto" />
-          <h1 className="text-2xl font-bold mb-4">Finance Department</h1>
+          <img src={Logo} alt="Finance Department" className="h-23 w-auto" /> 
+          <h1 className="text-2xl font-bold mb-4">HR3 Department</h1>
         </div>
 
         {/* Sign In Form */}
