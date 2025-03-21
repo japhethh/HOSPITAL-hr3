@@ -1,0 +1,293 @@
+### 1. Employee APIs
+
+### Create a new Employee
+POST http://localhost:8051/api/employees
+Content-Type: application/json
+
+{
+  "employeeId": "EMP001",
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "johndoe@example.com",
+  "phone": "123-456-7890",
+  "department": "Surgery",
+  "position": "Surgeon",
+  "hireDate": "2018-06-15",
+  "salary": 120000,
+  "status": "Active",
+  "attendance": [
+    {
+      "date": "2023-10-01",
+      "clockIn": "09:00",
+      "clockOut": "17:00",
+      "totalHours": 8,
+      "status": "Present",
+      "remarks": "On time"
+    }
+  ]
+}
+
+### Get all Employees
+GET http://localhost:8051/api/employees
+
+### Get Employee by ID
+GET http://localhost:8051/api/employees/EMP001
+
+### Update Employee
+PUT http://localhost:8051/api/employees/EMP001
+Content-Type: application/json
+
+{
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "johndoe@example.com",
+  "phone": "123-456-7890",
+  "department": "Surgery",
+  "position": "Surgeon",
+  "hireDate": "2018-06-15",
+  "salary": 180510,
+  "status": "Active"
+}
+
+### Delete Employee
+DELETE http://localhost:8051/api/employees/EMP001
+
+### 2. PayrollSystem APIs
+
+### Create a new PayrollSystem record
+POST http://localhost:8051/api/payroll-systems
+Content-Type: application/json
+
+{
+  "employeeId": "EMP001",
+  "name": "John Doe",
+  "department": "Surgery",
+  "position": "Surgeon",
+  "email": "johndoe@example.com",
+  "phone": "123-456-7890",
+  "salary": 120000,
+  "hireDate": "2018-06-15",
+  "status": "Active"
+}
+
+### Get all PayrollSystem records
+GET http://localhost:8051/api/payroll-systems
+
+### Get PayrollSystem record by ID
+GET http://localhost:8051/api/payroll-systems/EMP001
+
+### Update PayrollSystem record
+PUT http://localhost:8051/api/payroll-systems/EMP001
+Content-Type: application/json
+
+{
+  "name": "John Doe",
+  "department": "Surgery",
+  "position": "Surgeon",
+  "email": "johndoe@example.com",
+  "phone": "123-456-7890",
+  "salary": 180510,
+  "hireDate": "2018-06-15",
+  "status": "Active"
+}
+
+### Delete PayrollSystem record
+DELETE http://localhost:8051/api/payroll-systems/EMP001
+
+### 3. EmployeeEngagement APIs
+
+### Create a new EmployeeEngagement record
+POST http://localhost:8051/api/employee-engagements
+Content-Type: application/json
+
+{
+  "employeeId": "EMP001",
+  "engagementType": "Survey",
+  "engagementDate": "2023-10-01",
+  "engagementDetails": "Annual Employee Satisfaction Survey",
+  "facilitator": "HR Team",
+  "status": "Completed",
+  "outcome": "Positive",
+  "remarks": "High participation rate and positive feedback."
+}
+
+### Get all EmployeeEngagement records
+GET http://localhost:8051/api/employee-engagements
+
+### Get EmployeeEngagement record by ID
+GET http://localhost:8051/api/employee-engagements/EMP001
+
+### Update EmployeeEngagement record
+PUT http://localhost:8051/api/employee-engagements/EMP001
+Content-Type: application/json
+
+{
+  "engagementType": "Survey",
+  "engagementDate": "2023-10-01",
+  "engagementDetails": "Annual Employee Satisfaction Survey",
+  "facilitator": "HR Team",
+  "status": "Completed",
+  "outcome": "Positive",
+  "remarks": "High participation rate and positive feedback."
+}
+
+### Delete EmployeeEngagement record
+DELETE http://localhost:8051/api/employee-engagements/EMP001
+
+### 4. TimeAndAttendance APIs
+
+### Create a new TimeAndAttendance record
+POST http://localhost:8051/api/time-and-attendances
+Content-Type: application/json
+
+{
+  "employeeId": "EMP001",
+  "date": "2023-10-01",
+  "clockIn": "09:00",
+  "clockOut": "17:00",
+  "totalHours": 8,
+  "status": "Present",
+  "remarks": "On time"
+}
+
+### Get all TimeAndAttendance records
+GET http://localhost:8051/api/time-and-attendances
+
+### Get TimeAndAttendance record by ID
+GET http://localhost:8051/api/time-and-attendances/EMP001
+
+### Update TimeAndAttendance record
+PUT http://localhost:8051/api/time-and-attendances/EMP001
+Content-Type: application/json
+
+{
+  "date": "2023-10-01",
+  "clockIn": "09:00",
+  "clockOut": "17:00",
+  "totalHours": 8,
+  "status": "Present",
+  "remarks": "On time"
+}
+
+### Delete TimeAndAttendance record
+DELETE http://localhost:8051/api/time-and-attendances/EMP001
+
+### 5. EmployeeAssistantProgram APIs
+
+### Create a new EmployeeAssistantProgram record
+POST http://localhost:8051/api/employee-assistant-programs
+Content-Type: application/json
+
+{
+  "employeeId": "EMP001",
+  "programName": "Health Wellness Program",
+  "startDate": "2023-01-01",
+  "endDate": "2023-12-31",
+  "status": "Active",
+  "remarks": "Promotes healthy lifestyle"
+}
+
+### Get all EmployeeAssistantProgram records
+GET http://localhost:8051/api/employee-assistant-programs
+
+### Get EmployeeAssistantProgram record by ID
+GET http://localhost:8051/api/employee-assistant-programs/EMP001
+
+### Update EmployeeAssistantProgram record
+PUT http://localhost:8051/api/employee-assistant-programs/EMP001
+Content-Type: application/json
+
+{
+  "programName": "Health Wellness Program",
+  "startDate": "2023-01-01",
+  "endDate": "2023-12-31",
+  "status": "Active",
+  "remarks": "Promotes healthy lifestyle"
+}
+
+### Delete EmployeeAssistantProgram record
+DELETE http://localhost:8051/api/employee-assistant-programs/EMP001
+
+### 6. Leave APIs
+
+### Create a new Leave record
+POST http://localhost:8051/api/leaves
+Content-Type: application/json
+
+{
+  "employeeId": "EMP001",
+  "leaveType": "Paternity Leave",
+  "startDate": "2023-11-01",
+  "endDate": "2023-11-07",
+  "totalDays": 7,
+  "reason": "Paternity leave for newborn child",
+  "status": "Pending",
+  "approver": "HR002",
+  "appliedDate": "2023-10-25",
+  "approvalDate": "",
+  "rejectionReason": ""
+}
+
+### Get all Leave records
+GET http://localhost:8051/api/leaves
+
+### Get Leave record by ID
+GET http://localhost:8051/api/leaves/EMP001
+
+### Update Leave record
+PUT http://localhost:8051/api/leaves/EMP001
+Content-Type: application/json
+
+{
+  "leaveType": "Paternity Leave",
+  "startDate": "2023-11-01",
+  "endDate": "2023-11-07",
+  "totalDays": 7,
+  "reason": "Paternity leave for newborn child",
+  "status": "Approved",
+  "approver": "HR002",
+  "appliedDate": "2023-10-25",
+  "approvalDate": "2023-10-26",
+  "rejectionReason": ""
+}
+
+### Delete Leave record
+DELETE http://localhost:8051/api/leaves/EMP001
+
+### 7. Salary APIs
+
+### Create a new Salary record
+POST http://localhost:8051/api/salaries
+Content-Type: application/json
+
+{
+  "employeeId": "EMP001",
+  "basicSalary": 50000,
+  "allowances": 10000,
+  "deductions": 5000,
+  "netSalary": 55000,
+  "paymentDate": "2023-10-01",
+  "status": "Paid"
+}
+
+### Get all Salary records
+GET http://localhost:8051/api/salaries
+
+### Get Salary record by ID
+GET http://localhost:8051/api/salaries/EMP001
+
+### Update Salary record
+PUT http://localhost:8051/api/salaries/EMP001
+Content-Type: application/json
+
+{
+    "basicSalary": 50000,
+    "allowances": 10000,
+    "deductions": 5000,
+    "netSalary": 55000,
+    "paymentDate": "2023-10-01",
+    "status": "Paid"
+}
+
+### Delete Salary record
+DELETE http://localhost:8051/api/salaries/EMP001

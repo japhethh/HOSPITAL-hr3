@@ -9,7 +9,7 @@ const  http  = require('http')
 
 const authRoutes = require('./routes/authRoutes');
 const accountRoutes = require('./routes/accountRoutes')
-const monitorSocket = require('./service/monitorService')
+const hrRoutes = require("./routes/hrRoutes");
 
 //Middlewares
 const app = express();
@@ -41,6 +41,7 @@ app.use((req, res, next) => {
 // Routes
 app.use('/auth-api', authRoutes);
 app.use('/accounts', accountRoutes);
+app.use("/api", hrRoutes);
 
 
 // Connect to MongoDB
@@ -52,8 +53,6 @@ mongoose.connect(process.env.MONGO_URI)
 
     io.on('connection', (socket) => {
       console.log(`Client Connected: ${socket.id}`)
-
-      monitorSocket(socket, io)
 
       socket.on('disconnect', () => {
         console.log(`Client disconnected ${socket.id}` )
