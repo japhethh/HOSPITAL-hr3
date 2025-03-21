@@ -145,14 +145,38 @@ const EmployeeAssistantProgram = () => {
 
   useEffect(() => {
     const table = new DataTable("#myTable", {
-      data: assistantData.length > 0 ? assistantData : data,
+      data: assistantData,
       columns: [
-        { title: "Employee ID", data: "employeeId" },
-        { title: "Program Name", data: "programName" },
-        { title: "Start Date", data: "startDate" },
-        { title: "End Date", data: "endDate" },
-        { title: "Status", data: "status" },
-        { title: "Remarks", data: "remarks" },
+        {
+          title: "Employee ID",
+          data: "employeeId",
+          render: (data) => `${data ? data : "N/A"}`,
+        },
+        {
+          title: "Program Name",
+          data: "programName",
+          render: (data) => `${data ? data : "N/A"}`,
+        },
+        {
+          title: "Start Date",
+          data: "startDate",
+          render: (data) => `${data ? data : "N/A"}`,
+        },
+        {
+          title: "End Date",
+          data: "endDate",
+          render: (data) => `${data ? data : "N/A"}`,
+        },
+        {
+          title: "Status",
+          data: "status",
+          render: (data) => `${data ? data : "N/A"}`,
+        },
+        {
+          title: "Remarks",
+          data: "remarks",
+          render: (data) => `${data ? data : "N/A"}`,
+        },
         {
           title: "Action",
           data: null,
