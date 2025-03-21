@@ -275,79 +275,81 @@ const TimeAndAttendance = () => {
       {/* Detail Modal */}
       {showModal && modalType === "detail" && selectedData && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 p-6">
-          <div className="bg-white rounded-lg p-6 w-full max-w-lg shadow-lg overflow-hidden">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl shadow-lg overflow-hidden">
             <h1 className="text-2xl font-semibold py-2 font-Roboto text-gray-800">
               Attendance Details
             </h1>
-            <div className="space-y-3">
-              <div className="flex border rounded-lg overflow-hidden">
-                <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
-                  <label htmlFor="employeeId" className="label">
-                    Employee ID
-                  </label>
+            <div className="overflow-y-scroll h-72 ">
+              <div className="space-y-3">
+                <div className="flex border rounded-lg overflow-hidden">
+                  <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
+                    <label htmlFor="employeeId" className="label">
+                      Employee ID
+                    </label>
+                  </div>
+                  <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
+                    {selectedData?.employeeId}
+                  </div>
                 </div>
-                <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
-                  {selectedData?.employeeId}
+                <div className="flex border rounded-lg overflow-hidden">
+                  <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
+                    <label htmlFor="date" className="label">
+                      Date
+                    </label>
+                  </div>
+                  <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
+                    {selectedData?.date}
+                  </div>
                 </div>
-              </div>
-              <div className="flex border rounded-lg overflow-hidden">
-                <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
-                  <label htmlFor="date" className="label">
-                    Date
-                  </label>
+                <div className="flex border rounded-lg overflow-hidden">
+                  <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
+                    <label htmlFor="clockIn" className="label">
+                      Clock In
+                    </label>
+                  </div>
+                  <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
+                    {selectedData?.clockIn}
+                  </div>
                 </div>
-                <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
-                  {selectedData?.date}
+                <div className="flex border rounded-lg overflow-hidden">
+                  <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
+                    <label htmlFor="clockOut" className="label">
+                      Clock Out
+                    </label>
+                  </div>
+                  <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
+                    {selectedData?.clockOut}
+                  </div>
                 </div>
-              </div>
-              <div className="flex border rounded-lg overflow-hidden">
-                <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
-                  <label htmlFor="clockIn" className="label">
-                    Clock In
-                  </label>
+                <div className="flex border rounded-lg overflow-hidden">
+                  <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
+                    <label htmlFor="totalHours" className="label">
+                      Total Hours
+                    </label>
+                  </div>
+                  <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
+                    {selectedData?.totalHours}
+                  </div>
                 </div>
-                <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
-                  {selectedData?.clockIn}
+                <div className="flex border rounded-lg overflow-hidden">
+                  <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
+                    <label htmlFor="status" className="label">
+                      Status
+                    </label>
+                  </div>
+                  <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
+                    {selectedData?.status}
+                  </div>
                 </div>
-              </div>
-              <div className="flex border rounded-lg overflow-hidden">
-                <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
-                  <label htmlFor="clockOut" className="label">
-                    Clock Out
-                  </label>
-                </div>
-                <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
-                  {selectedData?.clockOut}
-                </div>
-              </div>
-              <div className="flex border rounded-lg overflow-hidden">
-                <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
-                  <label htmlFor="totalHours" className="label">
-                    Total Hours
-                  </label>
-                </div>
-                <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
-                  {selectedData?.totalHours}
-                </div>
-              </div>
-              <div className="flex border rounded-lg overflow-hidden">
-                <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
-                  <label htmlFor="status" className="label">
-                    Status
-                  </label>
-                </div>
-                <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
-                  {selectedData?.status}
-                </div>
-              </div>
-              <div className="flex border rounded-lg overflow-hidden">
-                <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
-                  <label htmlFor="remarks" className="label">
-                    Remarks
-                  </label>
-                </div>
-                <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
-                  {selectedData?.remarks}
+                <div className="flex border rounded-lg overflow-hidden">
+                  <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
+                    <label htmlFor="remarks" className="label">
+                      Remarks
+                    </label>
+                  </div>
+                  <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
+                    {selectedData?.remarks}
+                  </div>
                 </div>
               </div>
             </div>

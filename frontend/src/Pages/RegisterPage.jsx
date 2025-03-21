@@ -1,21 +1,21 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import axios from 'axios';
+import React, { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import axios from "axios";
 
 const RegisterPage = () => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [birthdate, setBirthdate] = useState('');
-  const [birthplace, setBirthplace] = useState('');
-  const [age, setAge] = useState('');
-  const [address, setAddress] = useState('');
-  const [contactNumber, setContactNumber] = useState('');
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [birthdate, setBirthdate] = useState("");
+  const [birthplace, setBirthplace] = useState("");
+  const [age, setAge] = useState("");
+  const [address, setAddress] = useState("");
+  const [contactNumber, setContactNumber] = useState("");
+  const [email, setEmail] = useState("");
   const navigate = useNavigate();
 
   const handleRegister = (e) => {
     e.preventDefault();
-    
+
     // Prepare user data
     const userData = {
       username,
@@ -29,27 +29,26 @@ const RegisterPage = () => {
     };
 
     // POST request to the backend
-    axios.post('http://localhost:4000/auth-api/register', userData)
-      .then(response => {
+    axios
+      .post("http://localhost:4000/auth-api/register", userData)
+      .then((response) => {
         if (response.data.success) {
           // Store the JWT token in localStorage
-          localStorage.setItem('token', response.data.token);
+          localStorage.setItem("token", response.data.token);
           // Redirect to the dashboard after successful registration
-          navigate('/dashboard');
+          navigate("/dashboard");
         } else {
-          alert('Registration failed');
+          alert("Registration failed");
         }
       })
-      .catch(error => {
-        if(error.response){
-          alert(error.response.data.message)
-        }
-        else if(error.request){
-          console.error(error.request)
-        }
-        else{
-          console.error('Something went error')
-          alert("An error occured. Please try again.")
+      .catch((error) => {
+        if (error.response) {
+          alert(error.response.data.message);
+        } else if (error.request) {
+          console.error(error.request);
+        } else {
+          console.error("Something went error");
+          alert("An error occured. Please try again.");
         }
       });
   };
@@ -139,12 +138,18 @@ const RegisterPage = () => {
               required
             />
           </div>
-          <button type="submit" className="w-full bg-blue-500 text-white p-2 rounded">
+          <button
+            type="submit"
+            className="w-full bg-blue-500 text-white p-2 rounded"
+          >
             Register
           </button>
         </form>
         <p className="text-center mt-4">
-          Already have an account? <Link to="/" className="text-blue-500">Login</Link>
+          Already have an account?{" "}
+          <Link to="/" className="text-blue-500">
+            Login
+          </Link>
         </p>
       </div>
     </div>

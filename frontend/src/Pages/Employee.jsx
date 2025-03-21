@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import DataTable from "datatables.net-dt";
 import PayrollSystemItem from "../Components/PayrollSystemItem";
+import axios from "axios";
+import { apiURL } from "../context/Store";
+import { toast } from "react-toastify";
 
 const Employee = () => {
   const [employeeData, setEmployeeData] = useState([]);
@@ -22,6 +25,16 @@ const Employee = () => {
     status: "Active",
     attendance: [],
   });
+  // const [data, setData] = useState([]);
+
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     const response = await axios.get(`${apiURL}/api/`);
+
+  //     setData(response.data);
+  //   };
+  //   fetchData();
+  // }, []);
 
   // Sample data for employees with attendance records
   const data = [
@@ -101,8 +114,20 @@ const Employee = () => {
     });
   };
 
-  const handleCreateEmployee = () => {
-    console.log("New Employee Data:", newEmployeeData);
+  const handleCreateEmployee = async () => {
+    // try {
+    //   const response = await axios.post(
+    //     `${apiURL}/api/payrollSystem/`,
+    //     newEmployeeData
+    //   );
+
+    // fetchData()
+
+    //   toast.success(response.data.message);
+    // } catch (error) {
+    //   console.log(error?.response.data.message);
+    // }
+
     const updatedData = [...data, newEmployeeData];
     setEmployeeData(updatedData);
     setCreateModalOpen(false);
@@ -121,15 +146,14 @@ const Employee = () => {
     });
   };
 
-  const handleDelete = () => {
-    if (selectedData) {
-      const updatedData = employeeData.filter(
-        (employee) => employee.employeeId !== selectedData.employeeId
-      );
-      setEmployeeData(updatedData);
-      setShowModal(false);
-      setSelectedData(null);
-    }
+  const handleDelete = async () => {
+    // try {
+    //   const response = await axios.delete(`${apiURL}/api/Employee/`);
+    // // fetchData()
+    //   toast.error(response.data.message);
+    // } catch (error) {
+    //   console.log(error?.response.data.message);
+    // }
   };
 
   // Function to handle edit button click
@@ -140,15 +164,27 @@ const Employee = () => {
   };
 
   // Function to handle update employee
-  const handleUpdateEmployee = () => {
+  const handleUpdateEmployee = async () => {
+    // try {
+    //   const response = await axios.put(
+    //     `${apiURL}/api/Employee/`,
+    //     newEmployeeData
+    //   );
+    // fetchData()
+
+    //   toast.info(response.data.message);
+    // } catch (error) {
+    //   console.log(error?.response.data.message);
+    // }
+
     const updatedData = employeeData.map((employee) =>
       employee.employeeId === selectedData.employeeId
         ? newEmployeeData
         : employee
     );
     setEmployeeData(updatedData);
-    setEditModalOpen(false); // Close the edit modal
-    setSelectedData(null); // Reset selected data
+    setEditModalOpen(false);
+    setSelectedData(null);
   };
 
   useEffect(() => {
@@ -504,99 +540,101 @@ const Employee = () => {
       {/* Detail Modal */}
       {showModal && modalType === "detail" && selectedData && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 p-6">
-          <div className="bg-white rounded-lg p-6 w-full max-w-lg shadow-lg overflow-hidden">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl shadow-lg overflow-hidden">
             <h1 className="text-2xl font-semibold py-2 font-Roboto text-gray-800">
               Employee Details
             </h1>
-            <div className="space-y-3">
-              <div className="flex border rounded-lg overflow-hidden">
-                <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
-                  <label htmlFor="employeeId" className="label">
-                    Employee ID
-                  </label>
+            <div className="overflow-y-scroll h-72 ">
+              <div className="space-y-3 ">
+                <div className="flex border rounded-lg overflow-hidden">
+                  <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
+                    <label htmlFor="employeeId" className="label">
+                      Employee ID
+                    </label>
+                  </div>
+                  <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
+                    {selectedData?.employeeId}
+                  </div>
                 </div>
-                <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
-                  {selectedData?.employeeId}
+                <div className="flex border rounded-lg overflow-hidden">
+                  <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
+                    <label htmlFor="name" className="label">
+                      Name
+                    </label>
+                  </div>
+                  <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
+                    {selectedData?.firstName} {selectedData?.lastName}
+                  </div>
                 </div>
-              </div>
-              <div className="flex border rounded-lg overflow-hidden">
-                <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
-                  <label htmlFor="name" className="label">
-                    Name
-                  </label>
+                <div className="flex border rounded-lg overflow-hidden">
+                  <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
+                    <label htmlFor="department" className="label">
+                      Department
+                    </label>
+                  </div>
+                  <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
+                    {selectedData?.department}
+                  </div>
                 </div>
-                <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
-                  {selectedData?.firstName} {selectedData?.lastName}
+                <div className="flex border rounded-lg overflow-hidden">
+                  <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
+                    <label htmlFor="position" className="label">
+                      Position
+                    </label>
+                  </div>
+                  <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
+                    {selectedData?.position}
+                  </div>
                 </div>
-              </div>
-              <div className="flex border rounded-lg overflow-hidden">
-                <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
-                  <label htmlFor="department" className="label">
-                    Department
-                  </label>
+                <div className="flex border rounded-lg overflow-hidden">
+                  <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
+                    <label htmlFor="email" className="label">
+                      Email
+                    </label>
+                  </div>
+                  <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
+                    {selectedData?.email}
+                  </div>
                 </div>
-                <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
-                  {selectedData?.department}
+                <div className="flex border rounded-lg overflow-hidden">
+                  <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
+                    <label htmlFor="phone" className="label">
+                      Phone
+                    </label>
+                  </div>
+                  <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
+                    {selectedData?.phone}
+                  </div>
                 </div>
-              </div>
-              <div className="flex border rounded-lg overflow-hidden">
-                <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
-                  <label htmlFor="position" className="label">
-                    Position
-                  </label>
+                <div className="flex border rounded-lg overflow-hidden">
+                  <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
+                    <label htmlFor="hireDate" className="label">
+                      Hire Date
+                    </label>
+                  </div>
+                  <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
+                    {selectedData?.hireDate}
+                  </div>
                 </div>
-                <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
-                  {selectedData?.position}
+                <div className="flex border rounded-lg overflow-hidden">
+                  <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
+                    <label htmlFor="salary" className="label">
+                      Salary
+                    </label>
+                  </div>
+                  <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
+                    {selectedData?.salary}
+                  </div>
                 </div>
-              </div>
-              <div className="flex border rounded-lg overflow-hidden">
-                <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
-                  <label htmlFor="email" className="label">
-                    Email
-                  </label>
-                </div>
-                <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
-                  {selectedData?.email}
-                </div>
-              </div>
-              <div className="flex border rounded-lg overflow-hidden">
-                <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
-                  <label htmlFor="phone" className="label">
-                    Phone
-                  </label>
-                </div>
-                <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
-                  {selectedData?.phone}
-                </div>
-              </div>
-              <div className="flex border rounded-lg overflow-hidden">
-                <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
-                  <label htmlFor="hireDate" className="label">
-                    Hire Date
-                  </label>
-                </div>
-                <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
-                  {selectedData?.hireDate}
-                </div>
-              </div>
-              <div className="flex border rounded-lg overflow-hidden">
-                <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
-                  <label htmlFor="salary" className="label">
-                    Salary
-                  </label>
-                </div>
-                <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
-                  {selectedData?.salary}
-                </div>
-              </div>
-              <div className="flex border rounded-lg overflow-hidden">
-                <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
-                  <label htmlFor="status" className="label">
-                    Status
-                  </label>
-                </div>
-                <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
-                  {selectedData?.status}
+                <div className="flex border rounded-lg overflow-hidden">
+                  <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
+                    <label htmlFor="status" className="label">
+                      Status
+                    </label>
+                  </div>
+                  <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
+                    {selectedData?.status}
+                  </div>
                 </div>
               </div>
             </div>

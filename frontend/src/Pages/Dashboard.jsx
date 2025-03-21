@@ -23,6 +23,8 @@ import TimeAndAttendance from "./TimeAndAttendance";
 import EmployeeAssistantProgram from "./EmployeeAssistantProgram";
 import EmployeeEngagement from "./EmployeeEngagement";
 import Employee from "./Employee";
+import Leave from "./Leave";
+import Salary from "./Salary";
 
 function AdminPage() {
   const [isToggled, setIsToggled] = useState(true);
@@ -102,9 +104,6 @@ function AdminPage() {
                 </NavLink>
               </li>
               <ul className="menu menu-vertical">
-                <h1 className="text-center border-b border-t border-gray-400 border-dotted text-md bg-slate-100">
-                  BACKUP AND RECOVERY
-                </h1>
                 <li className="font-semibold">
                   <NavLink to="payrollSystem" activeClassName="bg-gray-700">
                     <CiDatabase />
@@ -139,6 +138,18 @@ function AdminPage() {
                   >
                     <CiDatabase />
                     Employee Engagement
+                  </NavLink>
+                </li>
+                <li className="font-semibold">
+                  <NavLink to="leave" activeClassName="bg-gray-700">
+                    <CiDatabase />
+                    Leave
+                  </NavLink>
+                </li>
+                <li className="font-semibold">
+                  <NavLink to="salary" activeClassName="bg-gray-700">
+                    <CiDatabase />
+                    Salary
                   </NavLink>
                 </li>
                 <h1 className="text-center border-b border-t border-gray-400 border-dotted text-md bg-slate-100">
@@ -224,7 +235,8 @@ function AdminPage() {
                 path="employeeEngagement"
                 element={<EmployeeEngagement />}
               />
-              <Route path="adminData" element={<AdminData />} />
+              <Route path="leave" element={<Leave />} />
+              <Route path="salary" element={<Salary />} />
               <Route path="hrData" element={<HrData />} />
             </Routes>
           </div>

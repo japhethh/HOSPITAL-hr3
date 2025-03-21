@@ -3,7 +3,7 @@ const PayrollSystemItem = () => {
     {
       title: "All",
       value: "20",
-      color: "bg-yellow-500",
+      color: "bg-blue-500",
     },
   ];
 

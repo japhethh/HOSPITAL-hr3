@@ -443,79 +443,81 @@ const EmployeeEngagement = () => {
       {/* Detail Modal */}
       {showModal && modalType === "detail" && selectedData && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 p-6">
-          <div className="bg-white rounded-lg p-6 w-full max-w-lg shadow-lg overflow-hidden">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl shadow-lg overflow-hidden">
             <h1 className="text-2xl font-semibold py-2 font-Roboto text-gray-800">
               Engagement Details
             </h1>
-            <div className="space-y-3">
-              <div className="flex border rounded-lg overflow-hidden">
-                <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
-                  <label htmlFor="employeeId" className="label">
-                    Employee ID
-                  </label>
+            <div className="overflow-y-scroll h-72 ">
+              <div className="space-y-3 ">
+                <div className="flex border rounded-lg overflow-hidden">
+                  <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
+                    <label htmlFor="employeeId" className="label">
+                      Employee ID
+                    </label>
+                  </div>
+                  <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
+                    {selectedData?.employeeId}
+                  </div>
                 </div>
-                <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
-                  {selectedData?.employeeId}
+                <div className="flex border rounded-lg overflow-hidden">
+                  <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
+                    <label htmlFor="engagementType" className="label">
+                      Engagement Type
+                    </label>
+                  </div>
+                  <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
+                    {selectedData?.engagementType}
+                  </div>
                 </div>
-              </div>
-              <div className="flex border rounded-lg overflow-hidden">
-                <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
-                  <label htmlFor="engagementType" className="label">
-                    Engagement Type
-                  </label>
+                <div className="flex border rounded-lg overflow-hidden">
+                  <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
+                    <label htmlFor="engagementDate" className="label">
+                      Engagement Date
+                    </label>
+                  </div>
+                  <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
+                    {selectedData?.engagementDate}
+                  </div>
                 </div>
-                <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
-                  {selectedData?.engagementType}
+                <div className="flex border rounded-lg overflow-hidden">
+                  <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
+                    <label htmlFor="facilitator" className="label">
+                      Facilitator
+                    </label>
+                  </div>
+                  <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
+                    {selectedData?.facilitator}
+                  </div>
                 </div>
-              </div>
-              <div className="flex border rounded-lg overflow-hidden">
-                <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
-                  <label htmlFor="engagementDate" className="label">
-                    Engagement Date
-                  </label>
+                <div className="flex border rounded-lg overflow-hidden">
+                  <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
+                    <label htmlFor="status" className="label">
+                      Status
+                    </label>
+                  </div>
+                  <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
+                    {selectedData?.status}
+                  </div>
                 </div>
-                <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
-                  {selectedData?.engagementDate}
+                <div className="flex border rounded-lg overflow-hidden">
+                  <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
+                    <label htmlFor="outcome" className="label">
+                      Outcome
+                    </label>
+                  </div>
+                  <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
+                    {selectedData?.outcome}
+                  </div>
                 </div>
-              </div>
-              <div className="flex border rounded-lg overflow-hidden">
-                <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
-                  <label htmlFor="facilitator" className="label">
-                    Facilitator
-                  </label>
-                </div>
-                <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
-                  {selectedData?.facilitator}
-                </div>
-              </div>
-              <div className="flex border rounded-lg overflow-hidden">
-                <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
-                  <label htmlFor="status" className="label">
-                    Status
-                  </label>
-                </div>
-                <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
-                  {selectedData?.status}
-                </div>
-              </div>
-              <div className="flex border rounded-lg overflow-hidden">
-                <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
-                  <label htmlFor="outcome" className="label">
-                    Outcome
-                  </label>
-                </div>
-                <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
-                  {selectedData?.outcome}
-                </div>
-              </div>
-              <div className="flex border rounded-lg overflow-hidden">
-                <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
-                  <label htmlFor="remarks" className="label">
-                    Remarks
-                  </label>
-                </div>
-                <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
-                  {selectedData?.remarks}
+                <div className="flex border rounded-lg overflow-hidden">
+                  <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
+                    <label htmlFor="remarks" className="label">
+                      Remarks
+                    </label>
+                  </div>
+                  <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
+                    {selectedData?.remarks}
+                  </div>
                 </div>
               </div>
             </div>

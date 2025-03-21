@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import DataTable from "datatables.net-dt";
 import PayrollSystemItem from "../Components/PayrollSystemItem";
+import axios from "axios";
+import { apiURL } from "../context/Store";
+import { toast } from "react-toastify";
 
 const PayrollSystem = () => {
   const [inventoryData, setInventoryData] = useState([]);
@@ -132,18 +135,33 @@ const PayrollSystem = () => {
       status: "Active",
     },
   ];
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setNewPayrollData({
-      ...newPayrollData,
-      [name]: value,
-    });
+    if (modalType === "edit" && selectedData) {
+      setSelectedData({
+        ...selectedData,
+        [name]: value,
+      });
+    } else {
+      setNewPayrollData({
+        ...newPayrollData,
+        [name]: value,
+      });
+    }
   };
 
-  const handleCreatePayroll = () => {
-    const updatedData = [...data, newPayrollData];
-    setInventoryData(updatedData);
+  const handleCreatePayroll = async () => {
+    try {
+      const response = await axios.post(
+        `${apiURL}/api/payrollSystem/`,
+        newPayrollData
+      );
+
+      toast.success(response.data.message);
+    } catch (error) {
+      console.log(error?.response.data.message);
+    }
+
     setCreateModalOpen(false);
     setNewPayrollData({
       employeeId: "",
@@ -156,6 +174,29 @@ const PayrollSystem = () => {
       hireDate: "",
       status: "Active",
     });
+  };
+
+  const handleUpdatePayroll = async () => {
+    try {
+      const response = await axios.put(
+        `${apiURL}/api/payrollSystem/${selectedData.employeeId}`,
+        selectedData
+      );
+
+      toast.success(response.data.message);
+
+      // Update the local state if needed
+      const updatedData = inventoryData.map((item) =>
+        item.employeeId === selectedData.employeeId ? selectedData : item
+      );
+      setInventoryData(updatedData);
+
+      setShowModal(false);
+      setSelectedData(null);
+    } catch (error) {
+      console.log(error?.response.data.message);
+      toast.error("Failed to update payroll");
+    }
   };
 
   const handleDelete = () => {
@@ -176,11 +217,9 @@ const PayrollSystem = () => {
         { title: "Employee ID", data: "employeeId" },
         { title: "Name", data: "name" },
         { title: "Department", data: "department" },
-        { title: "Position", data: "position" },
         { title: "Email", data: "email" },
         { title: "Phone", data: "phone" },
         { title: "Salary", data: "salary" },
-        { title: "Hire Date", data: "hireDate" },
         { title: "Status", data: "status" },
         {
           title: "Action",
@@ -193,6 +232,9 @@ const PayrollSystem = () => {
               </button>
               <button class="bg-blue-700 text-xs text-white px-2 py-1 rounded-lg cursor-pointer" id="detailBtn_${data.employeeId}">
                 <i class="fas fa-eye"></i>
+              </button>
+              <button class="bg-green-500 text-xs text-white px-2 py-1 rounded-lg cursor-pointer" id="editBtn_${data.employeeId}">
+                <i class="fas fa-edit"></i>
               </button>
             </div>`;
           },
@@ -211,6 +253,15 @@ const PayrollSystem = () => {
           detailBtn.addEventListener("click", () => {
             setSelectedData(data);
             setModalType("detail");
+            setShowModal(true);
+          });
+        }
+
+        const editBtn = row.querySelector(`#editBtn_${data?.employeeId}`);
+        if (editBtn) {
+          editBtn.addEventListener("click", () => {
+            setSelectedData(data);
+            setModalType("edit");
             setShowModal(true);
           });
         }
@@ -373,102 +424,203 @@ const PayrollSystem = () => {
         </div>
       )}
 
+      {/* Edit Modal */}
+      {showModal && modalType === "edit" && selectedData && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg p-5 w-1/3">
+            <h3 className="text-lg font-bold font-Roboto">Edit Payroll</h3>
+            <div className="space-y-4 mt-4">
+              <input
+                type="text"
+                name="employeeId"
+                placeholder="Employee ID"
+                value={selectedData.employeeId}
+                onChange={handleInputChange}
+                className="w-full p-2 border rounded"
+                disabled
+              />
+              <input
+                type="text"
+                name="name"
+                placeholder="Name"
+                value={selectedData.name}
+                onChange={handleInputChange}
+                className="w-full p-2 border rounded"
+              />
+              <input
+                type="text"
+                name="department"
+                placeholder="Department"
+                value={selectedData.department}
+                onChange={handleInputChange}
+                className="w-full p-2 border rounded"
+              />
+              <input
+                type="text"
+                name="position"
+                placeholder="Position"
+                value={selectedData.position}
+                onChange={handleInputChange}
+                className="w-full p-2 border rounded"
+              />
+              <input
+                type="email"
+                name="email"
+                placeholder="Email"
+                value={selectedData.email}
+                onChange={handleInputChange}
+                className="w-full p-2 border rounded"
+              />
+              <input
+                type="text"
+                name="phone"
+                placeholder="Phone"
+                value={selectedData.phone}
+                onChange={handleInputChange}
+                className="w-full p-2 border rounded"
+              />
+              <input
+                type="number"
+                name="salary"
+                placeholder="Salary"
+                value={selectedData.salary}
+                onChange={handleInputChange}
+                className="w-full p-2 border rounded"
+              />
+              <input
+                type="date"
+                name="hireDate"
+                placeholder="Hire Date"
+                value={selectedData.hireDate}
+                onChange={handleInputChange}
+                className="w-full p-2 border rounded"
+              />
+              <select
+                name="status"
+                value={selectedData.status}
+                onChange={handleInputChange}
+                className="w-full p-2 border rounded"
+              >
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+              </select>
+            </div>
+            <div className="flex justify-end gap-4 mt-4">
+              <button
+                onClick={handleUpdatePayroll}
+                className="bg-blue-500 text-white px-4 py-2 rounded-md"
+              >
+                Update
+              </button>
+              <button
+                onClick={() => setShowModal(false)}
+                className="bg-gray-500 text-white px-4 py-2 rounded-md"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Detail Modal */}
       {showModal && modalType === "detail" && selectedData && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 p-6">
-          <div className="bg-white rounded-lg p-6 w-full max-w-lg shadow-lg overflow-hidden">
+          <div className="bg-white   max-w-2xl  rounded-lg p-6 w-full  shadow-lg overflow-hidden">
             <h1 className="text-2xl font-semibold py-2 font-Roboto text-gray-800">
               Payroll Details
             </h1>
-            <div className="space-y-3">
-              <div className="flex border rounded-lg overflow-hidden">
-                <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
-                  <label htmlFor="employeeId" className="label">
-                    Employee ID
-                  </label>
+            <div className="overflow-y-scroll h-72 ">
+              <div className="space-y-3">
+                <div className="flex border rounded-lg overflow-hidden">
+                  <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
+                    <label htmlFor="employeeId" className="label">
+                      Employee ID
+                    </label>
+                  </div>
+                  <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
+                    {selectedData?.employeeId}
+                  </div>
                 </div>
-                <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
-                  {selectedData?.employeeId}
+                <div className="flex border rounded-lg overflow-hidden">
+                  <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
+                    <label htmlFor="name" className="label">
+                      Name
+                    </label>
+                  </div>
+                  <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
+                    {selectedData?.name}
+                  </div>
                 </div>
-              </div>
-              <div className="flex border rounded-lg overflow-hidden">
-                <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
-                  <label htmlFor="name" className="label">
-                    Name
-                  </label>
+                <div className="flex border rounded-lg overflow-hidden">
+                  <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
+                    <label htmlFor="department" className="label">
+                      Department
+                    </label>
+                  </div>
+                  <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
+                    {selectedData?.department}
+                  </div>
                 </div>
-                <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
-                  {selectedData?.name}
+                <div className="flex border rounded-lg overflow-hidden">
+                  <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
+                    <label htmlFor="position" className="label">
+                      Position
+                    </label>
+                  </div>
+                  <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
+                    {selectedData?.position}
+                  </div>
                 </div>
-              </div>
-              <div className="flex border rounded-lg overflow-hidden">
-                <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
-                  <label htmlFor="department" className="label">
-                    Department
-                  </label>
+                <div className="flex border rounded-lg overflow-hidden">
+                  <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
+                    <label htmlFor="email" className="label">
+                      Email
+                    </label>
+                  </div>
+                  <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
+                    {selectedData?.email}
+                  </div>
                 </div>
-                <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
-                  {selectedData?.department}
+                <div className="flex border rounded-lg overflow-hidden">
+                  <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
+                    <label htmlFor="phone" className="label">
+                      Phone
+                    </label>
+                  </div>
+                  <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
+                    {selectedData?.phone}
+                  </div>
                 </div>
-              </div>
-              <div className="flex border rounded-lg overflow-hidden">
-                <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
-                  <label htmlFor="position" className="label">
-                    Position
-                  </label>
+                <div className="flex border rounded-lg overflow-hidden">
+                  <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
+                    <label htmlFor="salary" className="label">
+                      Salary
+                    </label>
+                  </div>
+                  <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
+                    {selectedData?.salary}
+                  </div>
                 </div>
-                <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
-                  {selectedData?.position}
+                <div className="flex border rounded-lg overflow-hidden">
+                  <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
+                    <label htmlFor="hireDate" className="label">
+                      Hire Date
+                    </label>
+                  </div>
+                  <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
+                    {selectedData?.hireDate}
+                  </div>
                 </div>
-              </div>
-              <div className="flex border rounded-lg overflow-hidden">
-                <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
-                  <label htmlFor="email" className="label">
-                    Email
-                  </label>
-                </div>
-                <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
-                  {selectedData?.email}
-                </div>
-              </div>
-              <div className="flex border rounded-lg overflow-hidden">
-                <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
-                  <label htmlFor="phone" className="label">
-                    Phone
-                  </label>
-                </div>
-                <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
-                  {selectedData?.phone}
-                </div>
-              </div>
-              <div className="flex border rounded-lg overflow-hidden">
-                <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
-                  <label htmlFor="salary" className="label">
-                    Salary
-                  </label>
-                </div>
-                <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
-                  {selectedData?.salary}
-                </div>
-              </div>
-              <div className="flex border rounded-lg overflow-hidden">
-                <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
-                  <label htmlFor="hireDate" className="label">
-                    Hire Date
-                  </label>
-                </div>
-                <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
-                  {selectedData?.hireDate}
-                </div>
-              </div>
-              <div className="flex border rounded-lg overflow-hidden">
-                <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
-                  <label htmlFor="status" className="label">
-                    Status
-                  </label>
-                </div>
-                <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
-                  {selectedData?.status}
+                <div className="flex border rounded-lg overflow-hidden">
+                  <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
+                    <label htmlFor="status" className="label">
+                      Status
+                    </label>
+                  </div>
+                  <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
+                    {selectedData?.status}
+                  </div>
                 </div>
               </div>
             </div>
