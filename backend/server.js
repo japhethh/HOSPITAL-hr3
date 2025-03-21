@@ -26,13 +26,12 @@ const io = new Server(server, {
 //   },
 // });
 
-app.use(cors());
-// app.use(
-//   cors({
-//     origin: "https://hr3.nodadogenhospital.com",
-//     credentials: true,
-//   })
-// );
+app.use(
+  cors({
+    origin: "https://hr3.nodadogenhospital.com",
+    credentials: true,
+  })
+);
 app.use(cookieParser());
 app.use(express.json());
 app.use((req, res, next) => {
