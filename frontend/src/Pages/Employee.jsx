@@ -11,7 +11,7 @@ const Employee = () => {
   const [modalType, setModalType] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [createModalOpen, setCreateModalOpen] = useState(false);
-  const [editModalOpen, setEditModalOpen] = useState(false); // New state for edit modal
+  const [editModalOpen, setEditModalOpen] = useState(false);
   const [newEmployeeData, setNewEmployeeData] = useState({
     employeeId: "",
     firstName: "",
@@ -25,168 +25,95 @@ const Employee = () => {
     status: "Active",
     attendance: [],
   });
-  // const [data, setData] = useState([]);
 
   useEffect(() => {
     fetchData();
   }, []);
+
   const fetchData = async () => {
     try {
       const response = await axios.get(`${apiURL}/api/employees`);
       console.log(response.data);
-
-      setSelectedData(response.data);
+      setEmployeeData(response.data); // Set the fetched data to employeeData
     } catch (error) {
-      console.log(error.reponse.data.message);
+      console.log(error?.response?.data?.message);
     }
   };
 
-  // Sample data for employees with attendance records
-  // const data = [
-  //   {
-  //     employeeId: "EMP001",
-  //     firstName: "John",
-  //     lastName: "Doe",
-  //     email: "johndoe@example.com",
-  //     phone: "123-456-7890",
-  //     department: "Surgery",
-  //     position: "Surgeon",
-  //     hireDate: "2018-06-15",
-  //     salary: 120000,
-  //     status: "Active",
-  //     attendance: [
-  //       {
-  //         date: "2023-10-01",
-  //         clockIn: "09:00",
-  //         clockOut: "17:00",
-  //         totalHours: 8,
-  //         status: "Present",
-  //         remarks: "On time",
-  //       },
-  //     ],
-  //   },
-  //   {
-  //     employeeId: "EMP002",
-  //     firstName: "Jane",
-  //     lastName: "Smith",
-  //     email: "janesmith@example.com",
-  //     phone: "987-654-3210",
-  //     department: "Nursing",
-  //     position: "Senior Nurse",
-  //     hireDate: "2019-09-10",
-  //     salary: 65000,
-  //     status: "Active",
-  //     attendance: [
-  //       {
-  //         date: "2023-10-01",
-  //         clockIn: "08:30",
-  //         clockOut: "16:30",
-  //         totalHours: 8,
-  //         status: "Present",
-  //         remarks: "Early arrival",
-  //       },
-  //     ],
-  //   },
-  //   {
-  //     employeeId: "EMP003",
-  //     firstName: "Emily",
-  //     lastName: "Brown",
-  //     email: "emilybrown@example.com",
-  //     phone: "456-789-0123",
-  //     department: "Pediatrics",
-  //     position: "Pediatrician",
-  //     hireDate: "2020-03-25",
-  //     salary: 110000,
-  //     status: "Active",
-  //     attendance: [
-  //       {
-  //         date: "2023-10-01",
-  //         clockIn: "09:15",
-  //         clockOut: "17:15",
-  //         totalHours: 8,
-  //         status: "Present",
-  //         remarks: "Late arrival",
-  //       },
-  //     ],
-  //   },
-  // ];
-
-  const handleCreateEmployee = async () => {
-    // try {
-    //   const response = await axios.post(
-    //     `${apiURL}/api/payrollSystem/`,
-    //     newEmployeeData
-    //   );
-
-    // fetchData()
-
-    //   toast.success(response.data.message);
-    // } catch (error) {
-    //   console.log(error?.response.data.message);
-    // }
-
-    const updatedData = [...data, newEmployeeData];
-    setEmployeeData(updatedData);
-    setCreateModalOpen(false);
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
     setNewEmployeeData({
-      employeeId: "",
-      firstName: "",
-      lastName: "",
-      email: "",
-      phone: "",
-      department: "",
-      position: "",
-      hireDate: "",
-      salary: 0,
-      status: "Active",
-      attendance: [],
+      ...newEmployeeData,
+      [name]: value,
     });
   };
 
-  const handleDelete = async () => {
-    // try {
-    //   const response = await axios.delete(`${apiURL}/api/Employee/`);
-    // // fetchData()
-    //   toast.error(response.data.message);
-    // } catch (error) {
-    //   console.log(error?.response.data.message);
-    // }
+  const handleCreateEmployee = async () => {
+    try {
+      const response = await axios.post(
+        `${apiURL}/api/employees`,
+        newEmployeeData
+      );
+      toast.success("Employee created successfully!");
+      fetchData(); // Refresh the data
+      setCreateModalOpen(false); // Close the modal
+      setNewEmployeeData({
+        employeeId: "",
+        firstName: "",
+        lastName: "",
+        email: "",
+        phone: "",
+        department: "",
+        position: "",
+        hireDate: "",
+        salary: 0,
+        status: "Active",
+        attendance: [],
+      }); // Reset the form
+    } catch (error) {
+      console.error("Error creating employee:", error);
+      toast.error("Failed to create employee.");
+    }
   };
 
-  // Function to handle edit button click
+  const handleDelete = async () => {
+    try {
+      await axios.delete(`${apiURL}/api/employees/${selectedData._id}`);
+      toast.success("Employee deleted successfully!");
+      fetchData(); // Refresh the data
+      setShowModal(false); // Close the modal
+      setSelectedData(null); // Reset selected data
+    } catch (error) {
+      console.error("Error deleting employee:", error);
+      toast.error("Failed to delete employee.");
+    }
+  };
+
   const handleEditClick = (data) => {
     setSelectedData(data);
     setNewEmployeeData(data); // Pre-fill the form with selected data
     setEditModalOpen(true); // Open the edit modal
   };
 
-  // Function to handle update employee
   const handleUpdateEmployee = async () => {
-    // try {
-    //   const response = await axios.put(
-    //     `${apiURL}/api/Employee/`,
-    //     newEmployeeData
-    //   );
-    // fetchData()
-
-    //   toast.info(response.data.message);
-    // } catch (error) {
-    //   console.log(error?.response.data.message);
-    // }
-
-    const updatedData = employeeData.map((employee) =>
-      employee.employeeId === selectedData.employeeId
-        ? newEmployeeData
-        : employee
-    );
-    setEmployeeData(updatedData);
-    setEditModalOpen(false);
-    setSelectedData(null);
+    try {
+      const response = await axios.put(
+        `${apiURL}/api/employees/${selectedData._id}`,
+        newEmployeeData
+      );
+      toast.success("Employee updated successfully!");
+      fetchData(); // Refresh the data
+      setEditModalOpen(false); // Close the modal
+      setSelectedData(null); // Reset selected data
+    } catch (error) {
+      console.error("Error updating employee:", error);
+      toast.error("Failed to update employee.");
+    }
   };
 
   useEffect(() => {
     const table = new DataTable("#myTable", {
-      data: employeeData.length > 0 ? employeeData : data,
+      data: employeeData,
       columns: [
         { title: "Employee ID", data: "employeeId" },
         {
@@ -251,7 +178,7 @@ const Employee = () => {
     return () => {
       table.destroy();
     };
-  }, [employeeData]);
+  }, [employeeData]); // Reinitialize when employeeData changes
 
   return (
     <div className="p-4">

@@ -100,7 +100,7 @@ const EmployeeAssistantProgram = () => {
   const handleDelete = async () => {
     try {
       const response = await axios.delete(
-        `${apiURL}/api/employeeAssistantProgram/${selectedData._id}`
+        `${apiURL}/api/employee-assistant-programs/${selectedData._id}`
       );
 
       toast.info("Deleted Successfully!");
@@ -123,12 +123,12 @@ const EmployeeAssistantProgram = () => {
   const handleUpdateAssistantProgram = async () => {
     try {
       const response = await axios.put(
-        `${apiURL}/api/employeeAssistantProgram/${selectedData._id}`,
+        `${apiURL}/api/employee-assistant-programs/${selectedData._id}`,
         selectedData
       );
 
       fetchData();
-      toast.success(response.data.message);
+      toast.success("Update successfully");
 
       // Update the local state if needed
 
@@ -305,7 +305,10 @@ const EmployeeAssistantProgram = () => {
             </div>
             <div className="flex justify-end gap-4 mt-4">
               <button
-                onClick={handleCreateAssistantProgram}
+                onClick={() => {
+                  handleCreateAssistantProgram();
+                  setCreateModalOpen(false);
+                }}
                 className="bg-blue-500 text-white px-4 py-2 rounded-md"
               >
                 Create
@@ -383,7 +386,7 @@ const EmployeeAssistantProgram = () => {
             <div className="flex justify-end gap-4 mt-4">
               <button
                 onClick={() => {
-                  handleUpdateAssistantProgram;
+                  handleUpdateAssistantProgram();
                   setEditModalOpen(false);
                   setNewAssistantData({
                     employeeId: "",
@@ -437,7 +440,11 @@ const EmployeeAssistantProgram = () => {
             </p>
             <div className="flex justify-end gap-4">
               <button
-                onClick={handleDelete}
+                onClick={() => {
+                  handleDelete();
+                  setSelectedData(null);
+                  setShowModal(false);
+                }}
                 className="btn btn-error btn-md text-white font-Roboto"
               >
                 Confirm

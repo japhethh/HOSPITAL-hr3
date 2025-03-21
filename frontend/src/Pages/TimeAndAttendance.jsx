@@ -11,6 +11,7 @@ const TimeAndAttendance = () => {
   const [modalType, setModalType] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false); // State for edit modal
   const [newAttendanceData, setNewAttendanceData] = useState({
     employeeId: "",
     date: "",
@@ -21,38 +22,7 @@ const TimeAndAttendance = () => {
     remarks: "",
   });
 
-  // Sample data for time and attendance
-  const data = [
-    {
-      employeeId: "EMP001",
-      date: "2023-10-01",
-      clockIn: "09:00",
-      clockOut: "17:00",
-      totalHours: 8,
-      status: "Present",
-      remarks: "On time",
-    },
-    {
-      employeeId: "EMP002",
-      date: "2023-10-01",
-      clockIn: "08:30",
-      clockOut: "16:30",
-      totalHours: 8,
-      status: "Present",
-      remarks: "Early arrival",
-    },
-    {
-      employeeId: "EMP003",
-      date: "2023-10-01",
-      clockIn: "09:15",
-      clockOut: "17:15",
-      totalHours: 8,
-      status: "Present",
-      remarks: "Late arrival",
-    },
-  ];
-
-  // Fetch
+  // Fetch data
   useEffect(() => {
     fetchData();
   }, []);
@@ -83,7 +53,7 @@ const TimeAndAttendance = () => {
       );
 
       fetchData();
-      toast.success(response.data.message);
+      toast.success("Attendance created successfully!");
       setCreateModalOpen(false);
       setNewAttendanceData({
         employeeId: "",
@@ -94,31 +64,65 @@ const TimeAndAttendance = () => {
         status: "Present",
         remarks: "",
       });
-      toast.success("Created Successfully");
-
-      console.log(response.data);
     } catch (error) {
       console.log(error?.response.data.message);
+      toast.error("Failed to create attendance.");
     }
   };
 
   const handleDelete = async () => {
     try {
-      const response = await axios.delete(
+      await axios.delete(
         `${apiURL}/api/time-and-attendances/${selectedData?._id}`
       );
 
-      toast.info("Deleted Successfully!");
+      toast.success("Attendance deleted successfully!");
       fetchData();
+      setShowModal(false);
+      setSelectedData(null);
     } catch (error) {
       console.log(error?.response.data.message);
-      toast.error("Failed to update payroll");
+      toast.error("Failed to delete attendance.");
+    }
+  };
+
+  // Function to handle edit button click
+  const handleEditClick = (data) => {
+    setSelectedData(data);
+    setNewAttendanceData(data); // Pre-fill the form with selected data
+    setEditModalOpen(true); // Open the edit modal
+  };
+
+  // Function to handle update attendance
+  const handleUpdateAttendance = async () => {
+    try {
+      const response = await axios.put(
+        `${apiURL}/api/time-and-attendances/${selectedData._id}`,
+        newAttendanceData
+      );
+
+      fetchData();
+      toast.success("Attendance updated successfully!");
+      setEditModalOpen(false); // Close the edit modal
+      setSelectedData(null); // Reset selected data
+      setNewAttendanceData({
+        employeeId: "",
+        date: "",
+        clockIn: "",
+        clockOut: "",
+        totalHours: 0,
+        status: "Present",
+        remarks: "",
+      }); // Reset the form
+    } catch (error) {
+      console.log(error?.response.data.message);
+      toast.error("Failed to update attendance.");
     }
   };
 
   useEffect(() => {
     const table = new DataTable("#myTable", {
-      data: attendanceData.length > 0 ? attendanceData : data,
+      data: attendanceData,
       columns: [
         { title: "Employee ID", data: "employeeId" },
         {
@@ -148,6 +152,9 @@ const TimeAndAttendance = () => {
               <button class="bg-blue-700 text-xs text-white px-2 py-1 rounded-lg cursor-pointer" id="detailBtn_${data.employeeId}">
                 <i class="fas fa-eye"></i>
               </button>
+              <button class="bg-green-500 text-xs text-white px-2 py-1 rounded-lg cursor-pointer" id="editBtn_${data.employeeId}">
+                <i class="fas fa-edit"></i>
+              </button>
             </div>`;
           },
         },
@@ -166,6 +173,13 @@ const TimeAndAttendance = () => {
             setSelectedData(data);
             setModalType("detail");
             setShowModal(true);
+          });
+        }
+
+        const editBtn = row.querySelector(`#editBtn_${data?.employeeId}`);
+        if (editBtn) {
+          editBtn.addEventListener("click", () => {
+            handleEditClick(data); // Open edit modal with selected data
           });
         }
       },
@@ -278,6 +292,102 @@ const TimeAndAttendance = () => {
         </div>
       )}
 
+      {/* Edit Attendance Modal */}
+      {editModalOpen && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg p-5 w-1/3">
+            <h3 className="text-lg font-bold font-Roboto">Edit Attendance</h3>
+            <div className="space-y-4 mt-4">
+              <input
+                type="text"
+                name="employeeId"
+                placeholder="Employee ID"
+                value={newAttendanceData.employeeId}
+                onChange={handleInputChange}
+                className="w-full p-2 border rounded"
+                disabled // Disable editing of Employee ID
+              />
+              <input
+                type="date"
+                name="date"
+                placeholder="Date"
+                value={newAttendanceData.date}
+                onChange={handleInputChange}
+                className="w-full p-2 border rounded"
+              />
+              <input
+                type="time"
+                name="clockIn"
+                placeholder="Clock In"
+                value={newAttendanceData.clockIn}
+                onChange={handleInputChange}
+                className="w-full p-2 border rounded"
+              />
+              <input
+                type="time"
+                name="clockOut"
+                placeholder="Clock Out"
+                value={newAttendanceData.clockOut}
+                onChange={handleInputChange}
+                className="w-full p-2 border rounded"
+              />
+              <input
+                type="number"
+                name="totalHours"
+                placeholder="Total Hours"
+                value={newAttendanceData.totalHours}
+                onChange={handleInputChange}
+                className="w-full p-2 border rounded"
+              />
+              <select
+                name="status"
+                value={newAttendanceData.status}
+                onChange={handleInputChange}
+                className="w-full p-2 border rounded"
+              >
+                <option value="Present">Present</option>
+                <option value="Absent">Absent</option>
+                <option value="Leave">Leave</option>
+                <option value="Half-Day">Half-Day</option>
+              </select>
+              <input
+                type="text"
+                name="remarks"
+                placeholder="Remarks"
+                value={newAttendanceData.remarks}
+                onChange={handleInputChange}
+                className="w-full p-2 border rounded"
+              />
+            </div>
+            <div className="flex justify-end gap-4 mt-4">
+              <button
+                onClick={handleUpdateAttendance}
+                className="bg-blue-500 text-white px-4 py-2 rounded-md"
+              >
+                Update
+              </button>
+              <button
+                onClick={() => {
+                  setEditModalOpen(false);
+                  setNewAttendanceData({
+                    employeeId: "",
+                    date: "",
+                    clockIn: "",
+                    clockOut: "",
+                    totalHours: 0,
+                    status: "Present",
+                    remarks: "",
+                  });
+                }}
+                className="bg-gray-500 text-white px-4 py-2 rounded-md"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Delete Modal */}
       {showModal && modalType === "delete" && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
@@ -295,9 +405,9 @@ const TimeAndAttendance = () => {
             <div className="flex justify-end gap-4">
               <button
                 onClick={() => {
+                  handleDelete();
                   setSelectedData(null);
                   setShowModal(false);
-                  handleDelete;
                 }}
                 className="btn btn-error btn-md text-white font-Roboto"
               >

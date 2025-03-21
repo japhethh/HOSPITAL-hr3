@@ -7,6 +7,7 @@ import { toast } from "react-toastify";
 
 const Salary = () => {
   const [selectedSalary, setSelectedSalary] = useState(null);
+  const [salaryData, setSalaryData] = useState([]); // Initialize as an empty array
   const [modalType, setModalType] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [createModalOpen, setCreateModalOpen] = useState(false);
@@ -17,7 +18,7 @@ const Salary = () => {
     allowances: 0,
     deductions: 0,
     netSalary: 0,
-    paymentDate: new Date(),
+    paymentDate: new Date().toISOString().split("T")[0], // Default to today's date
     status: "Pending",
   });
 
@@ -27,50 +28,13 @@ const Salary = () => {
 
   const fetchData = async () => {
     try {
-      const response = await axios.get(`${apiURL}/api/salary`);
+      const response = await axios.get(`${apiURL}/api/salaries`);
       console.log(response.data);
-      setSelectedSalary(response.data);
+      setSalaryData(response.data || []); // Ensure it's always an array
     } catch (error) {
       console.log(error?.response.data.message);
     }
   };
-
-  // Example Salary Data
-  const data = [
-    {
-      _id: "1",
-      employeeId: "EMP001",
-      basicSalary: 50000,
-      allowances: 10000,
-      deductions: 5000,
-      netSalary: 55000,
-      paymentDate: "2023-10-01",
-      status: "Paid",
-    },
-    {
-      _id: "2",
-      employeeId: "EMP002",
-      basicSalary: 60000,
-      allowances: 12000,
-      deductions: 6000,
-      netSalary: 66000,
-      paymentDate: "2023-10-01",
-      status: "Pending",
-    },
-  ];
-
-  useEffect(() => {
-    // Fetch salary data from the API
-    const fetchSalaryData = async () => {
-      try {
-        const response = await axios.get(`${apiURL}/api/salary`);
-        // setSalaryData(response.data);
-      } catch (error) {
-        console.error("Error fetching salary data:", error);
-      }
-    };
-    fetchSalaryData();
-  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -82,18 +46,22 @@ const Salary = () => {
 
   const handleCreateSalary = async () => {
     try {
-      const response = await axios.post(`${apiURL}/api/salary`, newSalaryData);
+      const response = await axios.post(
+        `${apiURL}/api/salaries`,
+        newSalaryData
+      );
       toast.success("Salary record created successfully!");
-      setCreateModalOpen(false);
+      fetchData(); // Refresh the data
+      setCreateModalOpen(false); // Close the modal
       setNewSalaryData({
         employeeId: "",
         basicSalary: 0,
         allowances: 0,
         deductions: 0,
         netSalary: 0,
-        paymentDate: new Date(),
+        paymentDate: new Date().toISOString().split("T")[0],
         status: "Pending",
-      });
+      }); // Reset the form
     } catch (error) {
       console.error("Error creating salary record:", error);
       toast.error("Failed to create salary record.");
@@ -102,9 +70,11 @@ const Salary = () => {
 
   const handleDeleteSalary = async () => {
     try {
-      await axios.delete(`${apiURL}/api/salary/${selectedSalary._id}`);
+      await axios.delete(`${apiURL}/api/salaries/${selectedSalary._id}`);
       toast.success("Salary record deleted successfully!");
-      setShowModal(false);
+      fetchData(); // Refresh the data
+      setShowModal(false); // Close the modal
+      setSelectedSalary(null); // Reset selected salary
     } catch (error) {
       console.error("Error deleting salary record:", error);
       toast.error("Failed to delete salary record.");
@@ -113,18 +83,22 @@ const Salary = () => {
 
   const handleEditClick = (salary) => {
     setSelectedSalary(salary);
-    setNewSalaryData(salary);
-    setEditModalOpen(true);
+    setNewSalaryData({
+      ...salary,
+      paymentDate: salary.paymentDate.split("T")[0], // Ensure the date is in the correct format
+    });
+    setEditModalOpen(true); // Open the edit modal
   };
 
   const handleUpdateSalary = async () => {
     try {
       const response = await axios.put(
-        `${apiURL}/api/salary/${selectedSalary._id}`,
+        `${apiURL}/api/salaries/${selectedSalary._id}`,
         newSalaryData
       );
       toast.success("Salary record updated successfully!");
-      setEditModalOpen(false);
+      fetchData(); // Refresh the data
+      setEditModalOpen(false); // Close the modal
     } catch (error) {
       console.error("Error updating salary record:", error);
       toast.error("Failed to update salary record.");
@@ -133,14 +107,38 @@ const Salary = () => {
 
   useEffect(() => {
     const table = new DataTable("#salaryTable", {
-      data: data,
+      data: salaryData, // Use salaryData instead of selectedSalary
       columns: [
-        { title: "Employee ID", data: "employeeId" },
-        { title: "Basic Salary", data: "basicSalary" },
-        { title: "Allowances", data: "allowances" },
-        { title: "Deductions", data: "deductions" },
-        { title: "Net Salary", data: "netSalary" },
-        { title: "Payment Date", data: "paymentDate" },
+        {
+          title: "Employee ID",
+          data: "employeeId",
+          render: (data) => `${data ? data : "N/A"}`,
+        },
+        {
+          title: "Basic Salary",
+          data: "basicSalary",
+          render: (data) => `${data ? data : "N/A"}`,
+        },
+        {
+          title: "Allowances",
+          data: "allowances",
+          render: (data) => `${data ? data : "N/A"}`,
+        },
+        {
+          title: "Deductions",
+          data: "deductions",
+          render: (data) => `${data ? data : "N/A"}`,
+        },
+        {
+          title: "Net Salary",
+          data: "netSalary",
+          render: (data) => `${data ? data : "N/A"}`,
+        },
+        {
+          title: "Payment Date",
+          data: "paymentDate",
+          render: (data) => `${data ? data : "N/A"}`,
+        },
         { title: "Status", data: "status" },
         {
           title: "Action",
@@ -164,8 +162,8 @@ const Salary = () => {
       rowCallback: (row, data) => {
         const deleteBtn = row.querySelector(`#deleteBtn_${data._id}`);
         deleteBtn.addEventListener("click", () => {
-          setSelectedSalary(data);
           setModalType("delete");
+          setSelectedSalary(data);
           setShowModal(true);
         });
 
@@ -181,7 +179,7 @@ const Salary = () => {
         const editBtn = row.querySelector(`#editBtn_${data._id}`);
         if (editBtn) {
           editBtn.addEventListener("click", () => {
-            handleEditClick(data);
+            handleEditClick(data); // Open edit modal with selected data
           });
         }
       },
@@ -192,7 +190,7 @@ const Salary = () => {
     return () => {
       table.destroy();
     };
-  }, [data]);
+  }, [salaryData]); // Reinitialize when salaryData changes
 
   return (
     <div className="p-4">
@@ -306,7 +304,6 @@ const Salary = () => {
                 value={newSalaryData.employeeId}
                 onChange={handleInputChange}
                 className="w-full p-2 border rounded"
-                disabled
               />
               <input
                 type="number"
@@ -361,35 +358,13 @@ const Salary = () => {
             </div>
             <div className="flex justify-end gap-4 mt-4">
               <button
-                onClick={() => {
-                  handleUpdateSalary;
-                  setNewSalaryData({
-                    employeeId: "",
-                    basicSalary: 0,
-                    allowances: 0,
-                    deductions: 0,
-                    netSalary: 0,
-                    paymentDate: new Date(),
-                    status: "Pending",
-                  });
-                }}
+                onClick={handleUpdateSalary}
                 className="bg-blue-500 text-white px-4 py-2 rounded-md"
               >
                 Update
               </button>
               <button
-                onClick={() => {
-                  setEditModalOpen(false);
-                  setNewSalaryData({
-                    employeeId: "",
-                    basicSalary: 0,
-                    allowances: 0,
-                    deductions: 0,
-                    netSalary: 0,
-                    paymentDate: new Date(),
-                    status: "Pending",
-                  });
-                }}
+                onClick={() => setEditModalOpen(false)}
                 className="bg-gray-500 text-white px-4 py-2 rounded-md"
               >
                 Cancel
@@ -411,7 +386,10 @@ const Salary = () => {
             </p>
             <div className="flex justify-end gap-4">
               <button
-                onClick={handleDeleteSalary}
+                onClick={() => {
+                  handleDeleteSalary();
+                  setShowModal(false);
+                }}
                 className="btn btn-error btn-md text-white font-Roboto"
               >
                 Confirm

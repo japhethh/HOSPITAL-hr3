@@ -7,6 +7,7 @@ import { toast } from "react-toastify";
 
 const Leave = () => {
   const [selectedLeave, setSelectedLeave] = useState(null);
+  const [leaveData, setLeaveData] = useState([]);
   const [modalType, setModalType] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [createModalOpen, setCreateModalOpen] = useState(false);
@@ -32,16 +33,14 @@ const Leave = () => {
 
   const fetchData = async () => {
     try {
-      const response = await axios.get(`${apiURL}/api/leave`);
+      const response = await axios.get(`${apiURL}/api/leaves`);
       console.log(response.data);
-      setSelectedLeave(response.data);
+      setLeaveData(response.data);
     } catch (error) {
       console.log(error?.response.data.message);
     }
   };
 
-  // const [leaveData, setLeaveData] = useState([]);
-  // Fetch leave data from the API
   const data = [
     {
       _id: "1",
@@ -115,18 +114,6 @@ const Leave = () => {
     },
   ];
 
-  useEffect(() => {
-    const fetchLeaveData = async () => {
-      try {
-        const response = await axios.get(`${apiURL}/api/leave`);
-        // setLeaveData(response.data);
-      } catch (error) {
-        console.error("Error fetching leave data:", error);
-      }
-    };
-    fetchLeaveData();
-  }, []);
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setNewLeaveData({
@@ -137,7 +124,7 @@ const Leave = () => {
 
   const handleCreateLeave = async () => {
     try {
-      const response = await axios.post(`${apiURL}/api/leave`, newLeaveData);
+      const response = await axios.post(`${apiURL}/api/leaves`, newLeaveData);
 
       fetchData();
       toast.success("Created Successfully!");
@@ -164,18 +151,17 @@ const Leave = () => {
   const handleDeleteLeave = async () => {
     try {
       const response = await axios.delete(
-        `${apiURL}/api/leave/${selectedLeave._id}`
+        `${apiURL}/api/leaves/${selectedLeave._id}`
       );
 
-      toast.info("Deleted Successfully!");
+      toast.success("Leave deleted successfully!");
+      setShowModal(false);
 
       fetchData();
     } catch (error) {
       console.log(error?.response.data.message);
       toast.error("Failed to update payroll");
     }
-    toast.success("Leave deleted successfully!");
-    setShowModal(false);
   };
 
   const handleEditClick = (leave) => {
@@ -187,7 +173,7 @@ const Leave = () => {
   const handleUpdateLeave = async () => {
     try {
       const response = await axios.put(
-        `${apiURL}/api/leave/${selectedLeave._id}`,
+        `${apiURL}/api/leaves/${selectedLeave._id}`,
         newLeaveData
       );
 
@@ -201,16 +187,48 @@ const Leave = () => {
 
   useEffect(() => {
     const table = new DataTable("#leaveTable", {
-      data: data,
+      data: leaveData ? leaveData : data,
       columns: [
-        { title: "Employee ID", data: "employeeId" },
-        { title: "Leave Type", data: "leaveType" },
-        { title: "Start Date", data: "startDate" },
-        { title: "End Date", data: "endDate" },
-        { title: "Total Days", data: "totalDays" },
-        { title: "Status", data: "status" },
-        { title: "Applied Date", data: "appliedDate" },
-        { title: "Approval Date", data: "approvalDate" },
+        {
+          title: "Employee ID",
+          data: "employeeId",
+          render: (data) => `${data ? data : "N/A"}`,
+        },
+        {
+          title: "Leave Type",
+          data: "leaveType",
+          render: (data) => `${data ? data : "N/A"}`,
+        },
+        {
+          title: "Start Date",
+          data: "startDate",
+          render: (data) => `${data ? data : "N/A"}`,
+        },
+        {
+          title: "End Date",
+          data: "endDate",
+          render: (data) => `${data ? data : "N/A"}`,
+        },
+        {
+          title: "Total Days",
+          data: "totalDays",
+          render: (data) => `${data ? data : "N/A"}`,
+        },
+        {
+          title: "Status",
+          data: "status",
+          render: (data) => `${data ? data : "N/A"}`,
+        },
+        {
+          title: "Applied Date",
+          data: "appliedDate",
+          render: (data) => `${data ? data : "N/A"}`,
+        },
+        {
+          title: "Approval Date",
+          data: "approvalDate",
+          render: (data) => `${data ? data : "N/A"}`,
+        },
         // { title: "Approver", data: "approver" },
         // { title: "Reason", data: "reason" },
         // { title: "Rejection Reason", data: "rejectionReason" },
@@ -487,7 +505,10 @@ const Leave = () => {
             </p>
             <div className="flex justify-end gap-4">
               <button
-                onClick={handleDeleteLeave}
+                onClick={() => {
+                  handleDeleteLeave();
+                  setShowModal(false);
+                }}
                 className="btn btn-error btn-md text-white font-Roboto"
               >
                 Confirm

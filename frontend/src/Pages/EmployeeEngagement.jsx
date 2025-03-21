@@ -11,7 +11,7 @@ const EmployeeEngagement = () => {
   const [modalType, setModalType] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [createModalOpen, setCreateModalOpen] = useState(false);
-  const [editModalOpen, setEditModalOpen] = useState(false); // New state for edit modal
+  const [editModalOpen, setEditModalOpen] = useState(false);
   const [newEngagementData, setNewEngagementData] = useState({
     employeeId: "",
     engagementType: "Survey",
@@ -23,54 +23,20 @@ const EmployeeEngagement = () => {
     remarks: "",
   });
 
-  // Fetch
+  // Fetch data
   useEffect(() => {
     fetchData();
   }, []);
 
   const fetchData = async () => {
     try {
-      const response = await axios.get(`${apiURL}/api/employeeEngagement`);
+      const response = await axios.get(`${apiURL}/api/employee-engagements`);
       console.log(response.data);
       setEngagementData(response.data);
     } catch (error) {
       console.log(error?.response.data.message);
     }
   };
-
-  // Sample data for employee engagement
-  const data = [
-    {
-      employeeId: "EMP001",
-      engagementType: "Survey",
-      engagementDate: "2023-10-01",
-      engagementDetails: "Annual Employee Satisfaction Survey",
-      facilitator: "HR Team",
-      status: "Completed",
-      outcome: "Positive",
-      remarks: "High participation rate and positive feedback.",
-    },
-    {
-      employeeId: "EMP002",
-      engagementType: "Team Building",
-      engagementDate: "2023-10-15",
-      engagementDetails: "Team-building workshop at the retreat center",
-      facilitator: "External Consultant",
-      status: "Pending",
-      outcome: "Neutral",
-      remarks: "Scheduled for next month.",
-    },
-    {
-      employeeId: "EMP003",
-      engagementType: "Training",
-      engagementDate: "2023-09-20",
-      engagementDetails: "Leadership Skills Training",
-      facilitator: "Internal Trainer",
-      status: "Completed",
-      outcome: "Positive",
-      remarks: "Employees reported improved confidence.",
-    },
-  ];
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -83,7 +49,7 @@ const EmployeeEngagement = () => {
   const handleCreateEngagement = async () => {
     try {
       const response = await axios.post(
-        `${apiURL}/api/employeeEngagement/`,
+        `${apiURL}/api/employee-engagements/`,
         newEngagementData
       );
 
@@ -108,15 +74,16 @@ const EmployeeEngagement = () => {
   const handleDelete = async () => {
     try {
       const response = await axios.delete(
-        `${apiURL}/api/employeeEngagement/${selectedData._id}`
+        `${apiURL}/api/employee-engagements/${selectedData._id}`
       );
 
       toast.info("Deleted Successfully!");
-
       fetchData();
+      setShowModal(false);
+      setSelectedData(null);
     } catch (error) {
       console.log(error?.response.data.message);
-      toast.error("Failed to update payroll");
+      toast.error("Failed to delete engagement.");
     }
   };
 
@@ -131,37 +98,65 @@ const EmployeeEngagement = () => {
   const handleUpdateEngagement = async () => {
     try {
       const response = await axios.put(
-        `${apiURL}/api/employeeEngagement/${selectedData._id}`,
-        selectedData
+        `${apiURL}/api/employee-engagements/${selectedData._id}`,
+        newEngagementData // Use newEngagementData instead of selectedData
       );
 
       fetchData();
-      toast.success(response.data.message);
+      toast.success("Updated Successfully");
 
-      setShowModal(false);
-      setSelectedData(null);
+      setEditModalOpen(false); // Close the edit modal
+      setSelectedData(null); // Reset selected data
+      setNewEngagementData({
+        employeeId: "",
+        engagementType: "Survey",
+        engagementDate: "",
+        engagementDetails: "",
+        facilitator: "",
+        status: "Pending",
+        outcome: "Neutral",
+        remarks: "",
+      }); // Reset the form
     } catch (error) {
       console.log(error?.response.data.message);
-      toast.error("Failed to update payroll");
+      toast.error("Failed to update engagement.");
     }
-    const updatedData = engagementData.map((item) =>
-      item.employeeId === selectedData.employeeId ? newEngagementData : item
-    );
-    setEngagementData(updatedData);
-    setEditModalOpen(false); // Close the edit modal
-    setSelectedData(null); // Reset selected data
   };
 
   useEffect(() => {
     const table = new DataTable("#myTable", {
-      data: engagementData.length > 0 ? engagementData : data,
+      data: engagementData,
       columns: [
-        { title: "Employee ID", data: "employeeId" },
-        { title: "Engagement Type", data: "engagementType" },
-        { title: "Engagement Date", data: "engagementDate" },
-        { title: "Facilitator", data: "facilitator" },
-        { title: "Status", data: "status" },
-        { title: "Outcome", data: "outcome" },
+        {
+          title: "Employee ID",
+          data: "employeeId",
+          render: (data) => `${data ? data : "N/A"}`,
+        },
+        {
+          title: "Engagement Type",
+          data: "engagementType",
+          render: (data) => `${data ? data : "N/A"}`,
+        },
+        {
+          title: "Engagement Date",
+          data: "engagementDate",
+          render: (data) => `${data ? data : "N/A"}`,
+        },
+        {
+          title: "Facilitator",
+          data: "facilitator",
+          render: (data) => `${data ? data : "N/A"}`,
+        },
+        {
+          title: "Status",
+          data: "status",
+          render: (data) => `${data ? data : "N/A"}`,
+        },
+        {
+          title: "Outcome",
+          data: "outcome",
+          render: (data) => `${data ? data : "N/A"}`,
+        },
         {
           title: "Action",
           data: null,
@@ -409,20 +404,7 @@ const EmployeeEngagement = () => {
             </div>
             <div className="flex justify-end gap-4 mt-4">
               <button
-                onClick={() => {
-                  handleUpdateEngagement;
-                  setEditModalOpen(false);
-                  setNewEngagementData({
-                    employeeId: "",
-                    engagementType: "Survey",
-                    engagementDate: "",
-                    engagementDetails: "",
-                    facilitator: "",
-                    status: "Pending",
-                    outcome: "Neutral",
-                    remarks: "",
-                  });
-                }}
+                onClick={handleUpdateEngagement}
                 className="bg-blue-500 text-white px-4 py-2 rounded-md"
               >
                 Update
@@ -466,7 +448,11 @@ const EmployeeEngagement = () => {
             </p>
             <div className="flex justify-end gap-4">
               <button
-                onClick={handleDelete}
+                onClick={() => {
+                  handleDelete();
+                  setSelectedData(null);
+                  setShowModal(false);
+                }}
                 className="btn btn-error btn-md text-white font-Roboto"
               >
                 Confirm
