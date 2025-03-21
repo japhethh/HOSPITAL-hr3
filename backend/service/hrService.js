@@ -1,8 +1,8 @@
 const Employee = require("../models/Employee");
-const EmployeeEngagement = require("../models/EmployeeEngagement");
+const EmployeeEngagement = require("../models/EmployeeAssistantProgram");
 const PayrollSystem = require("../models/PayrollSystem");
 const TimeAndAttendance = require("../models/TimeAndAttendance");
-const EmployeeAssistantProgram = require("../models/EmployeeAssistantProgram");
+const EmployeeAssistantProgram = require("../models/EmployeeEngagement");
 const Leave = require("../models/Leave");
 const Salary = require("../models/Salary");
 
