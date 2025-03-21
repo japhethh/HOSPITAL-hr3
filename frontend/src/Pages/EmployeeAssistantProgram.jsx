@@ -29,7 +29,7 @@ const EmployeeAssistantProgram = () => {
   const fetchData = async () => {
     try {
       const response = await axios.get(
-        `${apiURL}/api/employeeAssistantProgram`
+        `${apiURL}/api/employee-assistant-programs`
       );
       console.log(response.data);
       setAssistantData(response.data);
@@ -77,7 +77,7 @@ const EmployeeAssistantProgram = () => {
   const handleCreateAssistantProgram = async () => {
     try {
       const response = await axios.post(
-        `${apiURL}/api/employeeAssistantProgram/`,
+        `${apiURL}/api/employee-assistant-programs/`,
         newAssistantData
       );
 

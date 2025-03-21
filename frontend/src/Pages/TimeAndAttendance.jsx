@@ -59,7 +59,7 @@ const TimeAndAttendance = () => {
 
   const fetchData = async () => {
     try {
-      const response = await axios.get(`${apiURL}/api/timeAndAttendance`);
+      const response = await axios.get(`${apiURL}/api/time-and-attendances`);
       console.log(response.data);
       setAttendanceData(response.data);
     } catch (error) {
@@ -78,7 +78,7 @@ const TimeAndAttendance = () => {
   const handleCreateAttendance = async () => {
     try {
       const response = await axios.post(
-        `${apiURL}/api/timeAndAttendance/`,
+        `${apiURL}/api/time-and-attendances/`,
         newAttendanceData
       );
 
@@ -95,6 +95,8 @@ const TimeAndAttendance = () => {
         remarks: "",
       });
       toast.success("Created Successfully");
+
+      console.log(response.data);
     } catch (error) {
       console.log(error?.response.data.message);
     }
@@ -103,11 +105,10 @@ const TimeAndAttendance = () => {
   const handleDelete = async () => {
     try {
       const response = await axios.delete(
-        `${apiURL}/api/timeAndAttendance/${selectedData?._id}`
+        `${apiURL}/api/time-and-attendances/${selectedData?._id}`
       );
 
       toast.info("Deleted Successfully!");
-
       fetchData();
     } catch (error) {
       console.log(error?.response.data.message);
@@ -120,7 +121,16 @@ const TimeAndAttendance = () => {
       data: attendanceData.length > 0 ? attendanceData : data,
       columns: [
         { title: "Employee ID", data: "employeeId" },
-        { title: "Date", data: "date" },
+        {
+          title: "Date",
+          data: "date",
+          render: (data) =>
+            `${
+              new Date(data).toLocaleString()
+                ? new Date(data).toLocaleString()
+                : "N/A"
+            }`,
+        },
         { title: "Clock In", data: "clockIn" },
         { title: "Clock Out", data: "clockOut" },
         { title: "Total Hours", data: "totalHours" },
@@ -284,7 +294,11 @@ const TimeAndAttendance = () => {
             </p>
             <div className="flex justify-end gap-4">
               <button
-                onClick={handleDelete}
+                onClick={() => {
+                  setSelectedData(null);
+                  setShowModal(false);
+                  handleDelete;
+                }}
                 className="btn btn-error btn-md text-white font-Roboto"
               >
                 Confirm

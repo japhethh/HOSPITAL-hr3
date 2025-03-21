@@ -27,84 +27,89 @@ const Employee = () => {
   });
   // const [data, setData] = useState([]);
 
-  // useEffect(() => {
-  //   const fetchData = async () => {
-  //     const response = await axios.get(`${apiURL}/api/`);
+  useEffect(() => {
+    fetchData();
+  }, []);
+  const fetchData = async () => {
+    try {
+      const response = await axios.get(`${apiURL}/api/employees`);
+      console.log(response.data);
 
-  //     setData(response.data);
-  //   };
-  //   fetchData();
-  // }, []);
+      setSelectedData(response.data);
+    } catch (error) {
+      console.log(error.reponse.data.message);
+    }
+  };
 
   // Sample data for employees with attendance records
-  const data = [
-    {
-      employeeId: "EMP001",
-      firstName: "John",
-      lastName: "Doe",
-      email: "johndoe@example.com",
-      phone: "123-456-7890",
-      department: "Surgery",
-      position: "Surgeon",
-      hireDate: "2018-06-15",
-      salary: 120000,
-      status: "Active",
-      attendance: [
-        {
-          date: "2023-10-01",
-          clockIn: "09:00",
-          clockOut: "17:00",
-          totalHours: 8,
-          status: "Present",
-          remarks: "On time",
-        },
-      ],
-    },
-    {
-      employeeId: "EMP002",
-      firstName: "Jane",
-      lastName: "Smith",
-      email: "janesmith@example.com",
-      phone: "987-654-3210",
-      department: "Nursing",
-      position: "Senior Nurse",
-      hireDate: "2019-09-10",
-      salary: 65000,
-      status: "Active",
-      attendance: [
-        {
-          date: "2023-10-01",
-          clockIn: "08:30",
-          clockOut: "16:30",
-          totalHours: 8,
-          status: "Present",
-          remarks: "Early arrival",
-        },
-      ],
-    },
-    {
-      employeeId: "EMP003",
-      firstName: "Emily",
-      lastName: "Brown",
-      email: "emilybrown@example.com",
-      phone: "456-789-0123",
-      department: "Pediatrics",
-      position: "Pediatrician",
-      hireDate: "2020-03-25",
-      salary: 110000,
-      status: "Active",
-      attendance: [
-        {
-          date: "2023-10-01",
-          clockIn: "09:15",
-          clockOut: "17:15",
-          totalHours: 8,
-          status: "Present",
-          remarks: "Late arrival",
-        },
-      ],
-    },
-  ];
+  // const data = [
+  //   {
+  //     employeeId: "EMP001",
+  //     firstName: "John",
+  //     lastName: "Doe",
+  //     email: "johndoe@example.com",
+  //     phone: "123-456-7890",
+  //     department: "Surgery",
+  //     position: "Surgeon",
+  //     hireDate: "2018-06-15",
+  //     salary: 120000,
+  //     status: "Active",
+  //     attendance: [
+  //       {
+  //         date: "2023-10-01",
+  //         clockIn: "09:00",
+  //         clockOut: "17:00",
+  //         totalHours: 8,
+  //         status: "Present",
+  //         remarks: "On time",
+  //       },
+  //     ],
+  //   },
+  //   {
+  //     employeeId: "EMP002",
+  //     firstName: "Jane",
+  //     lastName: "Smith",
+  //     email: "janesmith@example.com",
+  //     phone: "987-654-3210",
+  //     department: "Nursing",
+  //     position: "Senior Nurse",
+  //     hireDate: "2019-09-10",
+  //     salary: 65000,
+  //     status: "Active",
+  //     attendance: [
+  //       {
+  //         date: "2023-10-01",
+  //         clockIn: "08:30",
+  //         clockOut: "16:30",
+  //         totalHours: 8,
+  //         status: "Present",
+  //         remarks: "Early arrival",
+  //       },
+  //     ],
+  //   },
+  //   {
+  //     employeeId: "EMP003",
+  //     firstName: "Emily",
+  //     lastName: "Brown",
+  //     email: "emilybrown@example.com",
+  //     phone: "456-789-0123",
+  //     department: "Pediatrics",
+  //     position: "Pediatrician",
+  //     hireDate: "2020-03-25",
+  //     salary: 110000,
+  //     status: "Active",
+  //     attendance: [
+  //       {
+  //         date: "2023-10-01",
+  //         clockIn: "09:15",
+  //         clockOut: "17:15",
+  //         totalHours: 8,
+  //         status: "Present",
+  //         remarks: "Late arrival",
+  //       },
+  //     ],
+  //   },
+  // ];
 
   const handleCreateEmployee = async () => {
     // try {

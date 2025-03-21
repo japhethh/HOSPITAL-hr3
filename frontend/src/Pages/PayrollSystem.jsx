@@ -23,126 +23,13 @@ const PayrollSystem = () => {
     status: "Active",
   });
 
-  const data = [
-    {
-      employeeId: "EMP001",
-      name: "Dr. John Doe",
-      department: "Surgery",
-      position: "Surgeon",
-      email: "johndoe@example.com",
-      phone: "123-456-7890",
-      salary: 120000,
-      hireDate: "2018-06-15",
-      status: "Active",
-    },
-    {
-      employeeId: "EMP002",
-      name: "Nurse Jane Smith",
-      department: "Nursing",
-      position: "Senior Nurse",
-      email: "janesmith@example.com",
-      phone: "987-654-3210",
-      salary: 65000,
-      hireDate: "2019-09-10",
-      status: "Active",
-    },
-    {
-      employeeId: "EMP003",
-      name: "Dr. Emily Brown",
-      department: "Pediatrics",
-      position: "Pediatrician",
-      email: "emilybrown@example.com",
-      phone: "456-789-0123",
-      salary: 110000,
-      hireDate: "2020-03-25",
-      status: "Active",
-    },
-    {
-      employeeId: "EMP004",
-      name: "Dr. Michael Green",
-      department: "Cardiology",
-      position: "Cardiologist",
-      email: "michaelgreen@example.com",
-      phone: "321-654-9870",
-      salary: 130000,
-      hireDate: "2017-08-30",
-      status: "Active",
-    },
-    {
-      employeeId: "EMP005",
-      name: "Sarah Johnson",
-      department: "Administration",
-      position: "HR Manager",
-      email: "sarahjohnson@example.com",
-      phone: "654-321-7890",
-      salary: 75000,
-      hireDate: "2016-05-20",
-      status: "Active",
-    },
-    {
-      employeeId: "EMP006",
-      name: "Dr. Daniel Lee",
-      department: "Orthopedics",
-      position: "Orthopedic Surgeon",
-      email: "daniellee@example.com",
-      phone: "789-012-3456",
-      salary: 125000,
-      hireDate: "2018-11-12",
-      status: "Active",
-    },
-    {
-      employeeId: "EMP007",
-      name: "Lisa Carter",
-      department: "Pharmacy",
-      position: "Pharmacist",
-      email: "lisacarter@example.com",
-      phone: "012-345-6789",
-      salary: 70000,
-      hireDate: "2021-02-18",
-      status: "Active",
-    },
-    {
-      employeeId: "EMP008",
-      name: "Dr. William Turner",
-      department: "Neurology",
-      position: "Neurologist",
-      email: "williamturner@example.com",
-      phone: "234-567-8901",
-      salary: 135000,
-      hireDate: "2015-07-07",
-      status: "Active",
-    },
-    {
-      employeeId: "EMP009",
-      name: "Tom Wilson",
-      department: "IT",
-      position: "System Administrator",
-      email: "tomwilson@example.com",
-      phone: "567-890-1234",
-      salary: 85000,
-      hireDate: "2019-12-05",
-      status: "Active",
-    },
-    {
-      employeeId: "EMP010",
-      name: "Olivia Martinez",
-      department: "Reception",
-      position: "Front Desk Officer",
-      email: "oliviamartinez@example.com",
-      phone: "890-123-4567",
-      salary: 50000,
-      hireDate: "2022-04-22",
-      status: "Active",
-    },
-  ];
-
   useEffect(() => {
     fetchData();
   }, []);
 
   const fetchData = async () => {
     try {
-      const response = await axios.get(`${apiURL}/api/payrollSystem`);
+      const response = await axios.get(`${apiURL}/api/payroll-systems`);
       console.log(response.data);
       setInventoryData(response.data);
     } catch (error) {
@@ -153,7 +40,7 @@ const PayrollSystem = () => {
   const handleCreatePayroll = async () => {
     try {
       const response = await axios.post(
-        `${apiURL}/api/payrollSystem/`,
+        `${apiURL}/api/payroll-systems`,
         newPayrollData
       );
 
@@ -179,7 +66,7 @@ const PayrollSystem = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    if (modalType === "edit" && selectedData) {
+    if (modalType === "edit") {
       setSelectedData({
         ...selectedData,
         [name]: value,
@@ -195,15 +82,12 @@ const PayrollSystem = () => {
   const handleUpdatePayroll = async () => {
     try {
       const response = await axios.put(
-        `${apiURL}/api/payrollSystem/${selectedData._id}`,
+        `${apiURL}/api/payroll-systems/${selectedData._id}`,
         selectedData
       );
 
       fetchData();
       toast.success(response.data.message);
-
-      // Update the local state if needed
-      setInventoryData(response.data.message);
 
       setShowModal(false);
       setSelectedData(null);
@@ -216,7 +100,7 @@ const PayrollSystem = () => {
   const handleDelete = async () => {
     try {
       const response = await axios.delete(
-        `${apiURL}/api/payrollSystem/${selectedData?._id}`
+        `${apiURL}/api/payroll-systems/${selectedData?._id}`
       );
 
       toast.info("Deleted Successfully!");
@@ -224,7 +108,7 @@ const PayrollSystem = () => {
       fetchData();
     } catch (error) {
       console.log(error?.response.data.message);
-      toast.error("Failed to update payroll");
+      toast.error("Failed to delete payroll");
     }
     if (selectedData) {
       const updatedData = inventoryData.filter(
@@ -238,7 +122,7 @@ const PayrollSystem = () => {
 
   useEffect(() => {
     const table = new DataTable("#myTable", {
-      data: inventoryData.length > 0 ? inventoryData : data,
+      data: inventoryData,
       columns: [
         { title: "Employee ID", data: "employeeId" },
         { title: "Name", data: "name" },
