@@ -7,9 +7,9 @@ Content-Type: application/json
 {
   "username": "test2",
   "role":"superAdmin",
-  "password": "test2",
-  "email":"test2@gmail.com",
-  "password":"test2",
+  "password": "superadmin",
+  "email":"superadmin@gmail.com",
+  "password":"superadmin#123",
   "fullName":"Martin Palku"
 }
 ### Create a new Employee
