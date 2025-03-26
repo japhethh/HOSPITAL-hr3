@@ -9,7 +9,17 @@ const OverView = () => {
   const [salaryRecords, setSalaryRecords] = useState([]);
   const [pendingLeaveCount, setPendingLeaveCount] = useState(899);
   const [pendingSalaryCount, setPendingSalaryCount] = useState(623);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // Function to open the modal
+  const openModal = () => {
+    setIsModalOpen(true);
+  };
+
+  // Function to close the modal
+  const closeModal = () => {
+    setIsModalOpen(false);
+  };
   // Mock data for leave requests
   const mockLeaveRequests = [
     {
@@ -298,6 +308,83 @@ const OverView = () => {
             </tbody>
           </table>
         </div>
+      </div>
+
+      <div className="p-6">
+        {/* ... (rest of your dashboard code) */}
+
+        {/* Biometric Authentication Section */}
+        <div className="bg-white p-6 rounded-lg shadow-md mt-8">
+          <h2 className="text-xl font-bold mb-4">Biometric Authentication</h2>
+          <div className="flex items-center justify-center">
+            <div className="text-center">
+              {/* Face Icon or Image */}
+              <div className="mb-4">
+                <img
+                  src="https://via.placeholder.com/100" // Replace with your face image or icon
+                  alt="Biometric Face"
+                  className="w-24 h-24 rounded-full mx-auto"
+                />
+              </div>
+              <p className="text-gray-700">
+                Use your fingerprint or facial recognition to authenticate.
+              </p>
+              <button
+                onClick={openModal}
+                className="mt-4 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
+              >
+                Authenticate with Biometrics
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Modal for Biometric Authentication */}
+        {isModalOpen && (
+          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+            <div className="bg-white p-8 rounded-lg shadow-lg w-11/12 max-w-md">
+              <h2 className="text-xl font-bold mb-4">
+                Biometric Authentication
+              </h2>
+              <div className="text-center">
+                {/* Larger Face Icon or Image */}
+                <div className="mb-4">
+                  <img
+                    src="https://via.placeholder.com/150" // Replace with your face image or icon
+                    alt="Biometric Face"
+                    className="w-32 h-32 rounded-full mx-auto"
+                  />
+                </div>
+                <p className="text-gray-700 mb-4">
+                  Please use your fingerprint or facial recognition to complete
+                  the authentication process.
+                </p>
+                <p className="text-gray-500 text-sm mb-6">
+                  Ensure your face is clearly visible and well-lit for facial
+                  recognition.
+                </p>
+                {/* Static Instructions */}
+                <div className="text-left mb-6">
+                  <h3 className="font-semibold text-gray-700 mb-2">
+                    Instructions:
+                  </h3>
+                  <ul className="list-disc list-inside text-gray-600">
+                    <li>Position your face in the frame.</li>
+                    <li>Keep your face steady for 2-3 seconds.</li>
+                    <li>Ensure proper lighting for better accuracy.</li>
+                  </ul>
+                </div>
+                {/* Close Button */}
+                <button
+                  onClick={closeModal}
+                  className="mt-4 bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

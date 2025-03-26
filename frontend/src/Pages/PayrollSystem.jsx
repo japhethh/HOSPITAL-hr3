@@ -18,6 +18,7 @@ const PayrollSystem = () => {
     position: "",
     email: "",
     phone: "",
+    leave: "",
     salary: "",
     hireDate: "",
     status: "Active",
@@ -58,6 +59,7 @@ const PayrollSystem = () => {
       position: "",
       email: "",
       phone: "",
+      leave: "",
       salary: "",
       hireDate: "",
       status: "Active",
@@ -124,27 +126,78 @@ const PayrollSystem = () => {
     const table = new DataTable("#myTable", {
       data: inventoryData,
       columns: [
-        { title: "Employee ID", data: "employeeId" },
-        { title: "Name", data: "name" },
-        { title: "Department", data: "department" },
-        { title: "Email", data: "email" },
-        { title: "Phone", data: "phone" },
+        {
+          title: "Employee ID",
+          data: "employeeId",
+          render: (data) => `${data ? data : "N/A"}`,
+        },
+        {
+          title: "Name",
+          data: "name",
+          render: (data) => `${data ? data : "N/A"}`,
+        },
+        {
+          title: "Department",
+          data: "department",
+          render: (data) => `${data ? data : "N/A"}`,
+        },
+        {
+          title: "Email",
+          data: "email",
+          render: (data) => `${data ? data : "N/A"}`,
+        },
+        {
+          title: "Phone",
+          data: "phone",
+          render: (data) => `${data ? data : "N/A"}`,
+        },
+        {
+          title: "Leave",
+          data: "leave",
+          render: (data) => `${data ? data : "N/A"}`,
+        },
+
         { title: "Salary", data: "salary" },
         { title: "Status", data: "status" },
         {
           title: "Action",
           data: null,
           render: (data) => {
+            
+            
             return `
-            <div>
-              <button class="bg-red-500 text-xs text-white font-Roboto px-2 py-1 rounded-lg mx-1 cursor-pointer" id="deleteBtn_${data?.employeeId}">
-                <i class="fas fa-trash-alt"></i>
+            <div class="flex items-center justify-center space-x-2">
+              <button 
+                class="group relative inline-flex items-center justify-center w-8 h-8 overflow-hidden rounded-full bg-red-50 hover:bg-red-100 transition-all duration-300 ease-in-out" 
+                id="deleteBtn_${data?.employeeId}"
+                title="Delete"
+              >
+                <span class="text-red-500 transition-colors duration-300 ease-in-out group-hover:text-red-600">
+                  <i class="fas fa-trash-alt text-sm"></i>
+                </span>
+                <div class="absolute inset-0 border-2 border-red-500 rounded-full opacity-0 group-hover:opacity-30 transition-opacity duration-300"></div>
               </button>
-              <button class="bg-blue-700 text-xs text-white px-2 py-1 rounded-lg cursor-pointer" id="detailBtn_${data.employeeId}">
-                <i class="fas fa-eye"></i>
+              
+              <button 
+                class="group relative inline-flex items-center justify-center w-8 h-8 overflow-hidden rounded-full bg-blue-50 hover:bg-blue-100 transition-all duration-300 ease-in-out" 
+                id="detailBtn_${data.employeeId}"
+                title="View Details"
+              >
+                <span class="text-blue-700 transition-colors duration-300 ease-in-out group-hover:text-blue-800">
+                  <i class="fas fa-eye text-sm"></i>
+                </span>
+                <div class="absolute inset-0 border-2 border-blue-700 rounded-full opacity-0 group-hover:opacity-30 transition-opacity duration-300"></div>
               </button>
-              <button class="bg-green-500 text-xs text-white px-2 py-1 rounded-lg cursor-pointer" id="editBtn_${data.employeeId}">
-                <i class="fas fa-edit"></i>
+              
+              <button 
+                class="group relative inline-flex items-center justify-center w-8 h-8 overflow-hidden rounded-full bg-green-50 hover:bg-green-100 transition-all duration-300 ease-in-out" 
+                id="editBtn_${data.employeeId}"
+                title="Edit"
+              >
+                <span class="text-green-500 transition-colors duration-300 ease-in-out group-hover:text-green-600">
+                  <i class="fas fa-edit text-sm"></i>
+                </span>
+                <div class="absolute inset-0 border-2 border-green-500 rounded-full opacity-0 group-hover:opacity-30 transition-opacity duration-300"></div>
               </button>
             </div>`;
           },
@@ -187,7 +240,7 @@ const PayrollSystem = () => {
 
   return (
     <div className="p-4">
-      <PayrollSystemItem data={inventoryData} title={'Payroll Data'}/>
+      <PayrollSystemItem data={inventoryData} title={"Payroll Data"} />
 
       <div className="flex justify-end items-center">
         <button
@@ -198,7 +251,9 @@ const PayrollSystem = () => {
         </button>
       </div>
       <div className="overflow-x-auto">
-        <table id="myTable" className="display w-full"></table>
+        <table id="myTable" className="display">
+          <thead className="bg-blue-500 text-white"></thead>
+        </table>
       </div>
 
       {/* Create Payroll Modal */}
@@ -255,6 +310,18 @@ const PayrollSystem = () => {
                 onChange={handleInputChange}
                 className="w-full p-2 border rounded"
               />
+              <select
+                name="leave"
+                value={newPayrollData.leave}
+                onChange={handleInputChange}
+                className="w-full p-2 border rounded"
+              >
+                <option value="">Leave</option>
+                <option value="sick">Sick</option>
+                <option value="vacation">Vacation</option>
+                <option value="maternity">Maternity</option>
+                <option value="paternity">Paternity</option>
+              </select>
               <input
                 type="number"
                 name="salary"
@@ -315,12 +382,6 @@ const PayrollSystem = () => {
             </p>
             <div className="flex justify-end gap-4">
               <button
-                onClick={handleDelete}
-                className="btn btn-error btn-md text-white font-Roboto"
-              >
-                Confirm
-              </button>
-              <button
                 className="btn btn-outline btn-error btn-md text-white font-Roboto"
                 onClick={() => {
                   setSelectedData(null);
@@ -328,6 +389,12 @@ const PayrollSystem = () => {
                 }}
               >
                 Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                className="btn btn-error btn-md text-white font-Roboto"
+              >
+                Confirm
               </button>
             </div>
           </div>
@@ -389,11 +456,23 @@ const PayrollSystem = () => {
                 onChange={handleInputChange}
                 className="w-full p-2 border rounded"
               />
+              <select
+                name="leave"
+                value={selectedData.leave}
+                onChange={handleInputChange}
+                className="w-full p-2 border rounded"
+              >
+                <option value="">Leave</option>
+                <option value="sick">Sick</option>
+                <option value="vacation">Vacation</option>
+                <option value="maternity">Maternity</option>
+                <option value="paternity">Paternity</option>
+              </select>
               <input
                 type="number"
                 name="salary"
                 placeholder="Salary"
-                value={selectedData.salary}
+                value={selectedData?.salary}
                 onChange={handleInputChange}
                 className="w-full p-2 border rounded"
               />
@@ -500,6 +579,16 @@ const PayrollSystem = () => {
                   </div>
                   <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
                     {selectedData?.phone}
+                  </div>
+                </div>
+                <div className="flex border rounded-lg overflow-hidden">
+                  <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
+                    <label htmlFor="leave" className="label">
+                      Leave
+                    </label>
+                  </div>
+                  <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
+                    {selectedData?.leave}
                   </div>
                 </div>
                 <div className="flex border rounded-lg overflow-hidden">

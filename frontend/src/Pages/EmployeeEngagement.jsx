@@ -162,15 +162,38 @@ const EmployeeEngagement = () => {
           data: null,
           render: (data) => {
             return `
-            <div>
-              <button class="bg-red-500 text-xs text-white font-Roboto px-2 py-1 rounded-lg mx-1 cursor-pointer" id="deleteBtn_${data?.employeeId}">
-                <i class="fas fa-trash-alt"></i>
+             <div class="flex items-center justify-center space-x-2">
+              <button 
+                class="group relative inline-flex items-center justify-center w-8 h-8 overflow-hidden rounded-full bg-red-50 hover:bg-red-100 transition-all duration-300 ease-in-out" 
+                id="deleteBtn_${data?.employeeId}"
+                title="Delete"
+              >
+                <span class="text-red-500 transition-colors duration-300 ease-in-out group-hover:text-red-600">
+                  <i class="fas fa-trash-alt text-sm"></i>
+                </span>
+                <div class="absolute inset-0 border-2 border-red-500 rounded-full opacity-0 group-hover:opacity-30 transition-opacity duration-300"></div>
               </button>
-              <button class="bg-blue-700 text-xs text-white px-2 py-1 rounded-lg cursor-pointer" id="detailBtn_${data.employeeId}">
-                <i class="fas fa-eye"></i>
+              
+              <button 
+                class="group relative inline-flex items-center justify-center w-8 h-8 overflow-hidden rounded-full bg-blue-50 hover:bg-blue-100 transition-all duration-300 ease-in-out" 
+                id="detailBtn_${data.employeeId}"
+                title="View Details"
+              >
+                <span class="text-blue-700 transition-colors duration-300 ease-in-out group-hover:text-blue-800">
+                  <i class="fas fa-eye text-sm"></i>
+                </span>
+                <div class="absolute inset-0 border-2 border-blue-700 rounded-full opacity-0 group-hover:opacity-30 transition-opacity duration-300"></div>
               </button>
-              <button class="bg-green-500 text-xs text-white px-2 py-1 rounded-lg cursor-pointer" id="editBtn_${data.employeeId}">
-                <i class="fas fa-edit"></i>
+              
+              <button 
+                class="group relative inline-flex items-center justify-center w-8 h-8 overflow-hidden rounded-full bg-green-50 hover:bg-green-100 transition-all duration-300 ease-in-out" 
+                id="editBtn_${data.employeeId}"
+                title="Edit"
+              >
+                <span class="text-green-500 transition-colors duration-300 ease-in-out group-hover:text-green-600">
+                  <i class="fas fa-edit text-sm"></i>
+                </span>
+                <div class="absolute inset-0 border-2 border-green-500 rounded-full opacity-0 group-hover:opacity-30 transition-opacity duration-300"></div>
               </button>
             </div>`;
           },
@@ -211,7 +234,10 @@ const EmployeeEngagement = () => {
 
   return (
     <div className="p-4">
-      <PayrollSystemItem data={engagementData} title={'Employee Engagement Data'} />
+      <PayrollSystemItem
+        data={engagementData}
+        title={"Employee Engagement Data"}
+      />
 
       <div className="flex justify-end items-center">
         <button
@@ -222,7 +248,9 @@ const EmployeeEngagement = () => {
         </button>
       </div>
       <div className="overflow-x-auto">
-        <table id="myTable" className="display w-full"></table>
+        <table id="myTable" className="display">
+          <thead className="bg-blue-500 text-white"></thead>
+        </table>
       </div>
 
       {/* Create Engagement Modal */}

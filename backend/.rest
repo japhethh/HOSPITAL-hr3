@@ -1,5 +1,17 @@
 ### 1. Employee APIs
 
+
+POST http://localhost:8051/auth-api/register
+Content-Type: application/json
+
+{
+  "username": "test2",
+  "role":"superAdmin",
+  "password": "test2",
+  "email":"test2@gmail.com",
+  "password":"test2",
+  "fullName":"Martin Palku"
+}
 ### Create a new Employee
 POST http://localhost:8051/api/employees
 Content-Type: application/json
