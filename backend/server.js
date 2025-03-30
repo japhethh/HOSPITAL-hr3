@@ -17,7 +17,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "https://hr3.nodadogenhospital.com",
+    origin: "http://localhost:5173",
   },
 });
 // const io = new Server(server, {
@@ -28,7 +28,7 @@ const io = new Server(server, {
 
 app.use(
   cors({
-    origin: "https://hr3.nodadogenhospital.com",
+    origin: "http://localhost:5173",
     credentials: true,
   })
 );

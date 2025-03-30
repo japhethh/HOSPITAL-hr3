@@ -147,7 +147,7 @@ function AdminPage() {
                     Employee Engagement
                   </NavLink>
                 </li>
-                <li className="font-semibold">
+                {/* <li className="font-semibold">
                   <NavLink to="leave" activeClassName="bg-gray-700">
                     <FcLeave className="text-black"/>
                     Leave
@@ -158,7 +158,7 @@ function AdminPage() {
                     <FaRegMoneyBillAlt  />
                     Salary
                   </NavLink>
-                </li>
+                </li> */}
 
                 <li className="font-semibold">
                   <NavLink
@@ -229,16 +229,22 @@ function AdminPage() {
                 path="overview"
                 element={<Overview userData={profile} />}
               />
-              <Route path="payrollSystem" element={<PayrollSystem />} />
-              <Route path="timeAndAttendance" element={<TimeAndAttendance />} />
-              <Route path="employee" element={<Employee />} />
+              <Route
+                path="payrollSystem"
+                element={<PayrollSystem profile={profile} />}
+              />
+              <Route
+                path="timeAndAttendance"
+                element={<TimeAndAttendance profile={profile} />}
+              />
+              <Route path="employee" element={<Employee profile={profile} />} />
               <Route
                 path="employeeAssistantProgram"
-                element={<EmployeeAssistantProgram />}
+                element={<EmployeeAssistantProgram profile={profile} />}
               />
               <Route
                 path="employeeEngagement"
-                element={<EmployeeEngagement />}
+                element={<EmployeeEngagement profile={profile} />}
               />
               <Route path="leave" element={<Leave />} />
               <Route path="salary" element={<Salary />} />

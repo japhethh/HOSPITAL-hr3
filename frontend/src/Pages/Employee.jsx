@@ -5,7 +5,7 @@ import axios from "axios";
 import { apiURL } from "../context/Store";
 import { toast } from "react-toastify";
 
-const Employee = () => {
+const Employee = ({ profile }) => {
   const [employeeData, setEmployeeData] = useState([]);
   const [selectedData, setSelectedData] = useState(null);
   const [modalType, setModalType] = useState(null);
@@ -134,7 +134,9 @@ const Employee = () => {
           render: (data) => {
             return `
              <div class="flex items-center justify-center space-x-2">
-              <button 
+             ${
+               profile?.role === "superAdmin" || profile?.role === "admin"
+                 ? ` <button 
                 class="group relative inline-flex items-center justify-center w-8 h-8 overflow-hidden rounded-full bg-red-50 hover:bg-red-100 transition-all duration-300 ease-in-out" 
                 id="deleteBtn_${data?._id}"
                 title="Delete"
@@ -143,8 +145,9 @@ const Employee = () => {
                   <i class="fas fa-trash-alt text-sm"></i>
                 </span>
                 <div class="absolute inset-0 border-2 border-red-500 rounded-full opacity-0 group-hover:opacity-30 transition-opacity duration-300"></div>
-              </button>
-              
+              </button>`
+                 : ""
+             }
               <button 
                 class="group relative inline-flex items-center justify-center w-8 h-8 overflow-hidden rounded-full bg-blue-50 hover:bg-blue-100 transition-all duration-300 ease-in-out" 
                 id="detailBtn_${data?._id}"
@@ -171,12 +174,14 @@ const Employee = () => {
         },
       ],
       rowCallback: (row, data) => {
-        const deleteBtn = row.querySelector(`#deleteBtn_${data?._id}`);
-        deleteBtn.addEventListener("click", () => {
-          setSelectedData(data);
-          setModalType("delete");
-          setShowModal(true);
-        });
+        if (profile?.role === "superAdmin" || profile?.role === "admin") {
+          const deleteBtn = row.querySelector(`#deleteBtn_${data?._id}`);
+          deleteBtn.addEventListener("click", () => {
+            setSelectedData(data);
+            setModalType("delete");
+            setShowModal(true);
+          });
+        }
 
         const detailBtn = row.querySelector(`#detailBtn_${data?._id}`);
         if (detailBtn) {
