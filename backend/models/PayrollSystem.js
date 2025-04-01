@@ -7,6 +7,7 @@ const PayrollSystemSchema = new mongoose.Schema({
     position: { type: String, required: true },
     email: { type: String, required: true },
     phone: { type: String, required: true },
+    leave: { type: String, required: true,default:"Leave" },
     salary: { type: Number, required: true },
     hireDate: { type: Date, required: true },
     status: { type: String, required: true },

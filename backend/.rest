@@ -67,20 +67,22 @@ DELETE http://localhost:8051/api/employees/EMP001
 ### 2. PayrollSystem APIs
 
 ### Create a new PayrollSystem record
-POST http://localhost:8051/api/payroll-systems
+POST http://localhost:8053/api/payroll-systems
 Content-Type: application/json
 
-{
-  "employeeId": "EMP001",
-  "name": "John Doe",
-  "department": "Surgery",
-  "position": "Surgeon",
-  "email": "johndoe@example.com",
-  "phone": "123-456-7890",
-  "salary": 120000,
-  "hireDate": "2018-06-15",
-  "status": "Active"
-}
+
+
+ {
+    "employeeId": "EMP002",
+    "name": "Jane Smith",
+    "department": "Cardiology",
+    "position": "Cardiologist",
+    "email": "janesmith@example.com",
+    "phone": "987-654-3210",
+    "salary": 140000,
+    "hireDate": "2016-09-20",
+    "status": "Active"
+  }
 
 ### Get all PayrollSystem records
 GET http://localhost:8051/api/payroll-systems
