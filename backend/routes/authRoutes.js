@@ -1,12 +1,18 @@
 const express = require("express");
 const User = require("../models/UserData");
-const { register, login, logout } = require("../controllers/authController");
+const {
+  register,
+  login,
+  logout,
+  verifyOTP,
+} = require("../controllers/authController");
 const jwt = require("jsonwebtoken");
 const router = express.Router();
 
 router.post("/register", register);
 router.post("/login", login);
 router.post("/logout", logout);
+router.post("/verify-otp", verifyOTP);
 
 // Verify Token Middleware
 const verifyToken = (req, res, next) => {

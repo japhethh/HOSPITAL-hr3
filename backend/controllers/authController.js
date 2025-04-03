@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const User = require("../models/UserData");
-
+const nodemailer = require("nodemailer");
 // Registration controller
 const register = async (req, res) => {
   const { username, password, email, fullName, role } = req.body;
@@ -44,6 +44,20 @@ const register = async (req, res) => {
   }
 };
 
+// Setup Nodemailer transporter (Use your Gmail credentials)
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL_USER, // Your Gmail address
+    pass: process.env.EMAIL_PASS, // Your Gmail app password
+  },
+});
+
+// Function to generate a 6-digit OTP
+const generateOTP = () => {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+};
+
 // Login controller
 const login = async (req, res) => {
   const { username, password } = req.body;
@@ -64,6 +78,24 @@ const login = async (req, res) => {
         .status(400)
         .json({ success: false, message: "Invalid credentials" });
     }
+
+    // Generate OTP
+    const otp = generateOTP();
+
+    // Save OTP temporarily (You can store it in Redis, DB, or session)
+    user.otp = otp;
+    user.otpExpires = Date.now() + 10 * 60 * 1000; // OTP valid for 10 minutes
+    await user.save();
+
+    // Send OTP via email
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: user.email,
+      subject: "Your 2FA Verification Code",
+      text: `Your OTP code is: ${otp}. It is valid for 10 minutes.`,
+    };
+
+    await transporter.sendMail(mailOptions);
 
     // Generate a JWT token
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
@@ -91,4 +123,44 @@ const logout = (req, res) => {
   console.log(`${username} logged out`);
 };
 
-module.exports = { register, login, logout };
+// OTP Verification Function
+const verifyOTP = async (req, res) => {
+  const { username, otp } = req.body;
+
+  try {
+    // Find user by username
+    const user = await User.findOne({ username });
+
+    if (!user || user.otp !== otp || Date.now() > user.otpExpires) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid or expired OTP" });
+    }
+
+    // Clear OTP after successful verification
+    user.otp = null;
+    user.otpExpires = null;
+    await user.save();
+
+    // Generate JWT token
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "24h",
+    });
+
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    res.status(200).json({ success: true, token });
+  } catch (error) {
+    console.error(error.message);
+    res
+      .status(500)
+      .json({ success: false, message: "OTP verification failed", error });
+  }
+};
+
+module.exports = { register, login, logout, verifyOTP };
