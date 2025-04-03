@@ -40,8 +40,12 @@ Content-Type: application/json
 }
 
 ### Get all Employees
-GET http://localhost:8051/api/employees
+GET http://localhost:8053/api/employees
 
+
+
+### GET ACCOUNT USER
+GET http://localhost:8053/accounts/get-accounts
 ### Get Employee by ID
 GET http://localhost:8051/api/employees/EMP001
 

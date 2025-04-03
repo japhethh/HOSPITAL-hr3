@@ -47,9 +47,12 @@ const register = async (req, res) => {
 // Setup Nodemailer transporter (Use your Gmail credentials)
 const transporter = nodemailer.createTransport({
   service: "gmail",
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true,
   auth: {
-    user: process.env.EMAIL_USER, // Your Gmail address
-    pass: process.env.EMAIL_PASS, // Your Gmail app password
+    user: "mtrcb32130@gmail.com",
+    pass: "cthx ifns yqtb kifg",
   },
 });
 
@@ -89,7 +92,7 @@ const login = async (req, res) => {
 
     // Send OTP via email
     const mailOptions = {
-      from: process.env.EMAIL_USER,
+      from: "mtrcb32130@gmail.com",
       to: user.email,
       subject: "Your 2FA Verification Code",
       text: `Your OTP code is: ${otp}. It is valid for 10 minutes.`,
