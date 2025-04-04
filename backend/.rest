@@ -17,10 +17,10 @@ POST http://localhost:8051/api/employees
 Content-Type: application/json
 
 {
-  "employeeId": "EMP001",
-  "firstName": "John",
-  "lastName": "Doe",
-  "email": "johndoe@example.com",
+  "employeeId": "EMP123",
+  "firstName": "Boy",
+  "lastName": "boy",
+  "email": "boy@example.com",
   "phone": "123-456-7890",
   "department": "Surgery",
   "position": "Surgeon",

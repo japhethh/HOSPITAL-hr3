@@ -32,6 +32,7 @@ import Employee from "./Employee";
 import Leave from "./Leave";
 import Salary from "./Salary";
 import { PiPlantDuotone } from "react-icons/pi";
+import FaceDetection from "../testing/faceDetection";
 
 function AdminPage() {
   const [isToggled, setIsToggled] = useState(true);
@@ -77,7 +78,6 @@ function AdminPage() {
 
     verify();
   }, []);
-
 
   if (isVerifying) {
     return (
@@ -250,6 +250,7 @@ function AdminPage() {
               <Route path="leave" element={<Leave />} />
               <Route path="salary" element={<Salary />} />
               <Route path="hrData" element={<HrData />} />
+              <Route path="faceDetection" element={<FaceDetection />} />
             </Routes>
           </div>
         </div>

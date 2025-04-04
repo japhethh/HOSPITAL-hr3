@@ -10,6 +10,7 @@ const http = require("http");
 const authRoutes = require("./routes/authRoutes");
 const accountRoutes = require("./routes/accountRoutes");
 const hrRoutes = require("./routes/hrRoutes");
+const attendanceRoute = require("./routes/attendanceRoute");
 
 //Middlewares
 const app = express();
@@ -47,6 +48,7 @@ app.use((req, res, next) => {
 app.use("/auth-api", authRoutes);
 app.use("/accounts", accountRoutes);
 app.use("/api", hrRoutes);
+app.use("/api/attendance-face", attendanceRoute);
 
 // Connect to MongoDB
 mongoose
