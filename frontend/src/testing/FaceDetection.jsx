@@ -7,92 +7,103 @@ function FaceDetection() {
   // Refs
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
+  const detectionIntervalRef = useRef(null);
 
   // State
-  const [mode, setMode] = useState("register"); // Start in register mode by default
+  const [mode, setMode] = useState("register");
   const [employeeId, setEmployeeId] = useState("");
   const [message, setMessage] = useState("");
   const [isCameraReady, setIsCameraReady] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [detectionActive, setDetectionActive] = useState(false);
   const [faceDetected, setFaceDetected] = useState(false);
+  const [modelsLoaded, setModelsLoaded] = useState(false);
+  const [detectionScore, setDetectionScore] = useState(0);
+  const [showLandmarks, setShowLandmarks] = useState(true);
 
   // Initialize camera and models
   useEffect(() => {
-    const loadModelsAndCamera = async () => {
+    let isMounted = true;
+    const initFaceDetection = async () => {
       try {
-        // First check if we're running in a secure context (HTTPS or localhost)
-        if (!window.isSecureContext) {
-          throw new Error(
-            "Camera access requires secure context (HTTPS or localhost)"
-          );
-        }
+        console.log("Loading face detection models...");
 
-        // Load models with error handling
+        // Load models from CDN
         await Promise.all([
-          faceapi.nets.tinyFaceDetector.loadFromUri("/models").catch((e) => {
-            throw new Error(`Failed to load face detector model: ${e.message}`);
-          }),
-          faceapi.nets.faceLandmark68Net.loadFromUri("/models").catch((e) => {
-            throw new Error(`Failed to load landmark model: ${e.message}`);
-          }),
-          faceapi.nets.faceRecognitionNet.loadFromUri("/models").catch((e) => {
-            throw new Error(`Failed to load recognition model: ${e.message}`);
-          }),
+          faceapi.nets.tinyFaceDetector.loadFromUri(
+            "https://justadudewhohacks.github.io/face-api.js/models"
+          ),
+          faceapi.nets.faceLandmark68Net.loadFromUri(
+            "https://justadudewhohacks.github.io/face-api.js/models"
+          ),
+          faceapi.nets.faceRecognitionNet.loadFromUri(
+            "https://justadudewhohacks.github.io/face-api.js/models"
+          ),
         ]);
+
+        if (!isMounted) return;
+
+        setModelsLoaded(true);
+        console.log("All models loaded successfully");
 
         // Get camera stream
         const stream = await navigator.mediaDevices.getUserMedia({
           video: {
+            facingMode: "user",
             width: 640,
             height: 480,
-            facingMode: "user", // Use front camera
           },
         });
 
-        if (videoRef.current) {
+        if (videoRef.current && isMounted) {
           videoRef.current.srcObject = stream;
           videoRef.current.onloadedmetadata = () => {
+            if (!isMounted) return;
+            console.log("Camera stream ready");
             setIsCameraReady(true);
-            startFaceDetection();
+            startDetection();
           };
         }
       } catch (error) {
-        setMessage(`Initialization Error: ${error.message}`);
         console.error("Initialization error:", error);
+        if (isMounted) {
+          setMessage(`Error: ${error.message}`);
+        }
       }
     };
 
-    loadModelsAndCamera();
+    initFaceDetection();
 
     return () => {
+      isMounted = false;
+      stopDetection();
       if (videoRef.current?.srcObject) {
         videoRef.current.srcObject.getTracks().forEach((track) => track.stop());
       }
     };
   }, []);
 
-  // Enhanced face detection loop with face presence check
-  const startFaceDetection = () => {
-    if (!videoRef.current || !canvasRef.current) return;
+  // Enhanced startDetection with better visual feedback
+  const startDetection = () => {
+    if (!videoRef.current || !canvasRef.current || !modelsLoaded) {
+      console.log("Detection prerequisites not met - retrying...");
+      setTimeout(startDetection, 100);
+      return;
+    }
 
     const canvas = canvasRef.current;
     const video = videoRef.current;
-    const displaySize = { width: video.width, height: video.height };
+    const displaySize = { width: video.videoWidth, height: video.videoHeight };
 
     faceapi.matchDimensions(canvas, displaySize);
-    setDetectionActive(true);
 
-    const detectFaces = async () => {
-      if (!detectionActive) return;
-
+    const detect = async () => {
       try {
         const detections = await faceapi
           .detectAllFaces(
             video,
             new faceapi.TinyFaceDetectorOptions({
-              inputSize: 512, // More accurate detection
-              scoreThreshold: 0.5, // Adjust sensitivity
+              inputSize: 512,
+              scoreThreshold: 0.3,
             })
           )
           .withFaceLandmarks();
@@ -104,202 +115,324 @@ function FaceDetection() {
         const ctx = canvas.getContext("2d");
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Update face detection status
         setFaceDetected(detections.length > 0);
 
-        // Draw detections and landmarks
         if (detections.length > 0) {
-          faceapi.draw.drawDetections(canvas, resizedDetections);
-          faceapi.draw.drawFaceLandmarks(canvas, resizedDetections);
+          const score = detections[0].detection.score;
+          setDetectionScore(score);
 
-          // Add helpful text when face is detected
+          // Visual feedback - different colors based on detection quality
+          const color =
+            score > 0.7 ? "#00FF00" : score > 0.5 ? "#FFFF00" : "#FF0000";
+
+          faceapi.draw.drawDetections(canvas, resizedDetections, {
+            lineWidth: 2,
+            color,
+          });
+
+          // Draw landmarks if enabled
+          if (showLandmarks) {
+            faceapi.draw.drawFaceLandmarks(canvas, resizedDetections, {
+              lineWidth: 1,
+              color: "#00FFFF",
+              drawLines: true,
+              drawPoints: true,
+              pointSize: 2,
+            });
+          }
+
+          // Real-time feedback text
           ctx.font = "16px Arial";
-          ctx.fillStyle = "#00FF00";
-          ctx.fillText("Face detected! Ready for registration", 10, 30);
+          ctx.fillStyle = color;
+          ctx.fillText(`Quality: ${Math.round(score * 100)}%`, 20, 30);
         } else {
-          // Guidance when no face is detected
+          // Feedback when no face detected
           ctx.font = "16px Arial";
-          ctx.fillStyle = "#FF0000";
-          ctx.fillText("Please position your face in the frame", 10, 30);
+          ctx.fillStyle = "#FFFFFF";
+          ctx.fillText("Position your face in the frame", 20, 30);
         }
       } catch (error) {
         console.error("Detection error:", error);
       }
-
-      requestAnimationFrame(detectFaces);
     };
 
-    detectFaces();
+    detectionIntervalRef.current = setInterval(detect, 200);
   };
 
-  // Enhanced face descriptor capture
+  // Stop face detection
+  const stopDetection = () => {
+    if (detectionIntervalRef.current) {
+      clearInterval(detectionIntervalRef.current);
+      detectionIntervalRef.current = null;
+    }
+  };
+
+  // Enhanced face descriptor capture with better feedback
   const captureFaceDescriptor = async () => {
-    if (!faceDetected) {
-      setMessage("Please position your face in the frame before registering");
-      return null;
-    }
-
-    setDetectionActive(false);
     setIsProcessing(true);
-    setMessage("Capturing face data...");
+    setMessage("Starting face capture...");
 
-    try {
-      const detection = await faceapi
-        .detectSingleFace(
-          videoRef.current,
-          new faceapi.TinyFaceDetectorOptions({
-            inputSize: 512,
-            scoreThreshold: 0.6, // Higher threshold for registration
-          })
-        )
-        .withFaceLandmarks()
-        .withFaceDescriptor();
-
-      if (!detection) {
-        throw new Error("Face not detected clearly. Please try again.");
-      }
-
-      // Additional quality check
-      const landmarks = detection.landmarks;
-      const jawOutline = landmarks.getJawOutline();
-      const jawDistance = faceapi.euclideanDistance(
-        jawOutline[0],
-        jawOutline[jawOutline.length - 1]
-      );
-
-      if (jawDistance < 100) {
-        throw new Error(
-          "Please move closer to the camera (about arm's length)"
-        );
-      }
-
-      return Array.from(detection.descriptor);
-    } catch (error) {
-      setMessage(`Capture Error: ${error.message}`);
-      return null;
-    } finally {
-      setIsProcessing(false);
-      setDetectionActive(true);
+    // Clear canvas before starting capture
+    const ctx = canvasRef.current?.getContext("2d");
+    if (ctx) {
+      ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
     }
+
+    const maxAttempts = 5; // Increased from 3 to 5 attempts
+    let attempts = 0;
+    let bestDescriptor = null;
+    let bestScore = 0;
+
+    while (attempts < maxAttempts) {
+      attempts++;
+      setMessage(`Scanning your face... Attempt ${attempts}/${maxAttempts}`);
+
+      try {
+        // Perform a single detection with higher quality settings
+        const detection = await faceapi
+          .detectSingleFace(
+            videoRef.current,
+            new faceapi.TinyFaceDetectorOptions({
+              inputSize: 512,
+              scoreThreshold: 0.6, // Increased threshold for better quality
+            })
+          )
+          .withFaceLandmarks()
+          .withFaceDescriptor();
+
+        if (!detection) {
+          setMessage("No face detected - please look directly at the camera");
+          await new Promise((resolve) => setTimeout(resolve, 800));
+          continue;
+        }
+
+        // Visual feedback - draw detection box in blue during capture
+        const displaySize = {
+          width: videoRef.current.videoWidth,
+          height: videoRef.current.videoHeight,
+        };
+        const resizedDetection = faceapi.resizeResults(detection, displaySize);
+
+        if (ctx) {
+          faceapi.draw.drawDetections(canvasRef.current, resizedDetection, {
+            lineWidth: 3,
+            color: "blue",
+          });
+
+          if (showLandmarks) {
+            faceapi.draw.drawFaceLandmarks(
+              canvasRef.current,
+              resizedDetection,
+              {
+                lineWidth: 1,
+                color: "cyan",
+              }
+            );
+          }
+        }
+
+        const score = detection.detection.score;
+        setDetectionScore(score);
+
+        // Enhanced quality checks
+        const landmarks = detection.landmarks;
+        const jawOutline = landmarks.getJawOutline();
+        const jawDistance = faceapi.euclideanDistance(
+          jawOutline[0],
+          jawOutline[jawOutline.length - 1]
+        );
+
+        // Visual feedback for distance
+        if (jawDistance < 80) {
+          // Increased minimum distance
+          setMessage("Move slightly closer to the camera");
+          await new Promise((resolve) => setTimeout(resolve, 800));
+          continue;
+        }
+
+        if (jawDistance > 200) {
+          // Added maximum distance check
+          setMessage("Move slightly further from the camera");
+          await new Promise((resolve) => setTimeout(resolve, 800));
+          continue;
+        }
+
+        if (score < 0.6) {
+          // Increased minimum score
+          setMessage("Hold still and face the camera directly");
+          await new Promise((resolve) => setTimeout(resolve, 800));
+          continue;
+        }
+
+        const descriptor = Array.from(detection.descriptor);
+        if (!descriptor || descriptor.length !== 128) {
+          setMessage("Error in face processing - trying again");
+          await new Promise((resolve) => setTimeout(resolve, 500));
+          continue;
+        }
+
+        // Track best descriptor
+        if (score > bestScore) {
+          bestScore = score;
+          bestDescriptor = descriptor;
+        }
+
+        // If high quality, return immediately
+        if (score >= 0.8) {
+          // Increased threshold for immediate acceptance
+          setMessage("Face captured successfully!");
+          return descriptor;
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, 800));
+      } catch (error) {
+        console.error(`Attempt ${attempts} failed:`, error);
+        setMessage(`Error: ${error.message}`);
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      }
+    }
+
+    setIsProcessing(false);
+
+    if (bestDescriptor) {
+      setMessage(`Best quality capture (${Math.round(bestScore * 100)}%)`);
+      return bestDescriptor;
+    }
+
+    setMessage("Failed to capture face - please try again");
+    return null;
   };
 
-  // Register new employee face with enhanced feedback
+  // Handle registration
   const handleRegister = async () => {
     if (!employeeId.trim()) {
-      setMessage("Please enter a valid Employee ID");
+      setMessage("Please enter Employee ID");
       return;
     }
-
-    setMessage("Preparing to register your face...");
-    await new Promise((resolve) => setTimeout(resolve, 500)); // Small delay for UX
 
     const faceDescriptor = await captureFaceDescriptor();
     if (!faceDescriptor) return;
 
     try {
-      setMessage("Registering your face... Please wait");
+      setMessage("Registering face...");
       const response = await axios.post(
         `${apiURL}/api/attendance-face/register-face`,
-        {
-          employeeId,
-          faceDescriptor,
-        }
+        { employeeId, faceDescriptor },
+        { timeout: 10000 }
       );
 
-      setMessage(`Success: ${response.data.message}`);
-      setMode("clock-in");
-      setEmployeeId("");
-
-      // Show success message for 3 seconds
-      setTimeout(() => setMessage(""), 3000);
+      if (response.data.success) {
+        setMessage("Registration successful!");
+        setMode("clock-in");
+        setEmployeeId("");
+      } else {
+        throw new Error(response.data.message || "Registration failed");
+      }
     } catch (error) {
-      setMessage(
-        `Registration Failed: ${
-          error.response?.data?.message || "Server error"
-        }`
-      );
+      console.error("Registration error:", error);
+      setMessage(error.response?.data?.message || error.message);
     }
   };
 
-  // Clock in with face recognition
+  // Handle clock in
   const handleClockIn = async () => {
-    if (!faceDetected) {
-      setMessage("Please position your face in the frame");
-      return;
-    }
-
     const faceDescriptor = await captureFaceDescriptor();
     if (!faceDescriptor) return;
 
     try {
-      setMessage("Verifying your identity...");
+      setMessage("Verifying identity...");
       const response = await axios.post(
         `${apiURL}/api/attendance-face/clock-in`,
-        { faceDescriptor }
+        { faceDescriptor },
+        { timeout: 10000 }
       );
 
       setMessage(
-        `Successfully Clocked In: ${response.data.employeeName} (${response.data.department})`
+        `Clocked in as ${response.data.employee} (${response.data.department})`
       );
     } catch (error) {
-      setMessage(
-        `Clock-in Failed: ${
-          error.response?.data?.message || "Recognition failed"
-        }`
-      );
+      console.error("Clock in error:", error);
+      setMessage(error.response?.data?.message || "Recognition failed");
     }
   };
 
   return (
     <div className="app-container">
-      <h1 className="app-title">Face Recognition Attendance System</h1>
+      <h1 className="text-center my-3">Face Recognition Attendance</h1>
 
-      <div className="mode-selector">
+      <div className="mode-selector flex justify-center items-center font-bold gap-2 mb-4">
         <button
-          className={`mode-btn ${mode === "clock-in" ? "active" : ""}`}
+          className={`px-4 py-2 rounded-md font-semibold transition-colors ${
+            mode === "clock-in"
+              ? "bg-blue-600 text-white"
+              : "bg-gray-200 text-gray-700"
+          }`}
           onClick={() => setMode("clock-in")}
         >
           Clock In
         </button>
         <button
-          className={`mode-btn ${mode === "register" ? "active" : ""}`}
+          className={`px-4 py-2 rounded-md font-semibold transition-colors ${
+            mode === "register"
+              ? "bg-blue-600 text-white"
+              : "bg-gray-200 text-gray-700"
+          }`}
           onClick={() => setMode("register")}
         >
           Register Face
         </button>
       </div>
 
-      <div className="video-container">
+      <div className="flex justify-center mb-2">
+        <label className="flex items-center space-x-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={showLandmarks}
+            onChange={() => setShowLandmarks(!showLandmarks)}
+            className="form-checkbox h-5 w-5 text-blue-600"
+          />
+          <span>Show Face Landmarks</span>
+        </label>
+      </div>
+
+      <div
+        className="video-container relative mx-auto bg-black rounded-lg overflow-hidden"
+        style={{ width: "400px", height: "300px" }}
+      >
         <video
           ref={videoRef}
-          className="video-element"
           autoPlay
           muted
-          playsInline // Important for iOS
-          width="640"
-          height="480"
+          playsInline
+          className="video-element w-full h-full object-cover"
         />
         <canvas
           ref={canvasRef}
-          className="canvas-overlay"
-          width="640"
-          height="480"
+          className="canvas-overlay absolute top-0 left-0 w-full h-full"
+          style={{ transform: "scaleX(-1)" }}
         />
+
+        {faceDetected && (
+          <div className="detection-info absolute bottom-3 left-3 bg-black/70 text-white px-3 py-1 rounded-full text-sm">
+            Detection: {(detectionScore * 100).toFixed(0)}%
+          </div>
+        )}
       </div>
 
       {mode === "register" && (
-        <div className="input-container">
+        <div className="input-container flex justify-center my-4">
           <input
             type="text"
-            placeholder="Enter Employee ID"
+            className="rounded-md border border-gray-300 px-4 py-2 w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Employee ID"
             value={employeeId}
             onChange={(e) => setEmployeeId(e.target.value)}
-            className="employee-id-input"
+            disabled={isProcessing}
           />
         </div>
       )}
 
-      <div className="action-container">
+      <div className="flex justify-center mt-4">
         <button
           onClick={mode === "register" ? handleRegister : handleClockIn}
           disabled={
@@ -307,22 +440,29 @@ function FaceDetection() {
             isProcessing ||
             (mode === "register" && !employeeId.trim())
           }
-          className="action-btn"
+          className={`px-6 py-2 rounded-md font-medium text-white transition-colors ${
+            isProcessing ? "bg-gray-500" : "bg-green-600 hover:bg-green-700"
+          }`}
         >
-          {isProcessing
-            ? "Processing..."
-            : mode === "register"
-            ? "Register Face"
-            : "Clock In"}
+          {isProcessing ? (
+            <span className="flex items-center justify-center">
+              <span className="inline-block mr-2 w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+              Processing...
+            </span>
+          ) : mode === "register" ? (
+            "Register Face"
+          ) : (
+            "Clock In"
+          )}
         </button>
       </div>
 
       {message && (
         <div
-          className={`message ${
-            message.includes("Error") || message.includes("Failed")
-              ? "error"
-              : "success"
+          className={`mt-4 mx-auto max-w-md text-center px-4 py-3 rounded ${
+            message.includes("Error") || message.includes("failed")
+              ? "bg-red-100 text-red-700"
+              : "bg-green-100 text-green-700"
           }`}
         >
           {message}
@@ -330,151 +470,12 @@ function FaceDetection() {
       )}
 
       {!isCameraReady && (
-        <div className="loading-message">
+        <div className="text-center mt-4 p-3 bg-yellow-100 text-yellow-700 rounded">
           {window.isSecureContext
-            ? "Loading camera and face detection models..."
-            : "Waiting for secure connection..."}
+            ? "Initializing camera..."
+            : "Please use HTTPS or localhost"}
         </div>
       )}
-
-      <style>{`
-        .app-container {
-          max-width: 680px;
-          margin: 0 auto;
-          padding: 20px;
-          font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        .app-title {
-          text-align: center;
-          color: #2c3e50;
-          margin-bottom: 25px;
-        }
-
-        .mode-selector {
-          display: flex;
-          justify-content: center;
-          gap: 15px;
-          margin-bottom: 20px;
-        }
-
-        .mode-btn {
-          padding: 10px 20px;
-          border: none;
-          border-radius: 5px;
-          cursor: pointer;
-          font-weight: 600;
-          transition: all 0.3s;
-        }
-
-        .mode-btn.active {
-          background-color: #3498db;
-          color: white;
-        }
-
-        .mode-btn:not(.active) {
-          background-color: #ecf0f1;
-          color: #7f8c8d;
-        }
-
-        .video-container {
-          position: relative;
-          width: 640px;
-          height: 480px;
-          margin: 0 auto 20px;
-          border-radius: 8px;
-          overflow: hidden;
-          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .video-element {
-          width: 100%;
-          height: 100%;
-          background-color: #ddd;
-          display: block;
-          transform: scaleX(-1); /* Mirror effect for front camera */
-        }
-
-        .canvas-overlay {
-          position: absolute;
-          top: 0;
-          left: 0;
-          pointer-events: none;
-          transform: scaleX(-1); /* Match mirror effect */
-        }
-
-        .input-container {
-          margin: 20px 0;
-          text-align: center;
-        }
-
-        .employee-id-input {
-          padding: 12px 15px;
-          width: 300px;
-          border: 1px solid #ddd;
-          border-radius: 5px;
-          font-size: 16px;
-          text-align: center;
-        }
-
-        .action-container {
-          text-align: center;
-          margin: 25px 0;
-        }
-
-        .action-btn {
-          padding: 12px 30px;
-          background-color: #2ecc71;
-          color: white;
-          border: none;
-          border-radius: 5px;
-          font-size: 16px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: background-color 0.3s;
-        }
-
-        .action-btn:hover:not(:disabled) {
-          background-color: #27ae60;
-        }
-
-        .action-btn:disabled {
-          background-color: #95a5a6;
-          cursor: not-allowed;
-          opacity: 0.7;
-        }
-
-        .message {
-          padding: 12px;
-          margin: 20px auto;
-          max-width: 80%;
-          border-radius: 5px;
-          text-align: center;
-          font-weight: 500;
-        }
-
-        .message.success {
-          background-color: #d5f5e3;
-          color: #27ae60;
-          border: 1px solid #27ae60;
-        }
-
-        .message.error {
-          background-color: #fadbd8;
-          color: #e74c3c;
-          border: 1px solid #e74c3c;
-        }
-
-        .loading-message {
-          text-align: center;
-          padding: 15px;
-          background-color: #fff3e0;
-          color: #e67e22;
-          border-radius: 5px;
-          margin-top: 20px;
-          border: 1px solid #e67e22;
-        }
-      `}</style>
     </div>
   );
 }

@@ -43,7 +43,6 @@ Content-Type: application/json
 GET http://localhost:8053/api/employees
 
 
-
 ### GET ACCOUNT USER
 GET http://localhost:8053/accounts/get-accounts
 ### Get Employee by ID
