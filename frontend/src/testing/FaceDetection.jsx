@@ -45,7 +45,7 @@ function FaceDetection() {
         setModelsLoaded(true);
         console.log("All models loaded successfully");
 
-        // Get camera stream
+        // Get camera streams
         const stream = await navigator.mediaDevices.getUserMedia({
           video: {
             facingMode: "user",
