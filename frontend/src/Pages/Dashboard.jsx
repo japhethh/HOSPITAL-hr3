@@ -78,6 +78,7 @@ function AdminPage() {
     verify();
   }, []);
 
+
   if (isVerifying) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -160,7 +161,7 @@ function AdminPage() {
                   </NavLink>
                 </li> */}
 
-                <li className="font-semibold">
+                {/* <li className="font-semibold">
                   <NavLink
                     to="accountsManagement"
                     activeClassName="bg-gray-700"
@@ -168,7 +169,7 @@ function AdminPage() {
                     <MdSupervisorAccount />
                     USER MANAGEMENT
                   </NavLink>
-                </li>
+                </li> */}
               </ul>
             </ul>
           </div>

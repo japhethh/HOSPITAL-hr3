@@ -12,6 +12,7 @@
   "dependencies": {
     "@fullcalendar/daygrid": "^6.1.15",
     "@fullcalendar/react": "^6.1.15",
+    "@vladmandic/face-api": "^1.7.15",
     "axios": "^1.7.7",
     "datatables.net-dt": "^2.2.2",
     "html2canvas-pro": "^1.5.8",
@@ -27,6 +28,7 @@
     "react-router-dom": "^6.30.0",
     "react-spinners": "^0.14.1",
     "react-toastify": "^10.0.6",
+    "react-webcam": "^7.2.0",
     "recharts": "^2.15.1",
     "socket.io-client": "^4.8.1",
     "styled-components": "^6.1.16",

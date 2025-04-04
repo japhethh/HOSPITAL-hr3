@@ -20,6 +20,7 @@ const TimeAndAttendance = ({ profile }) => {
     totalHours: 0,
     status: "Present",
     remarks: "",
+    department: "",
   });
 
   // Fetch data
@@ -139,6 +140,11 @@ const TimeAndAttendance = ({ profile }) => {
         { title: "Clock Out", data: "clockOut" },
         { title: "Total Hours", data: "totalHours" },
         { title: "Status", data: "status" },
+        {
+          title: "Department",
+          data: "department",
+          render: (data) => `${data ? data : "N/A"}`,
+        },
         { title: "Remarks", data: "remarks" },
         {
           title: "Action",
@@ -300,6 +306,21 @@ const TimeAndAttendance = ({ profile }) => {
                 <option value="Leave">Leave</option>
                 <option value="Half-Day">Half-Day</option>
               </select>
+              <select
+                name="department"
+                value={newAttendanceData.department}
+                onChange={handleInputChange}
+                className="w-full p-2 border rounded"
+              >
+                <option value="">Selected department</option>
+                <option value="Ambulance">Ambulance</option>
+                <option value="ER">ER</option>
+                <option value="Leave">Leave</option>
+                <option value="ICU">ICU</option>
+                <option value="General">General</option>
+                <option value="Administration">Administration</option>
+                <option value="Half-Day">Half-Day</option>
+              </select>
               <input
                 type="text"
                 name="remarks"
@@ -383,6 +404,21 @@ const TimeAndAttendance = ({ profile }) => {
                 <option value="Present">Present</option>
                 <option value="Absent">Absent</option>
                 <option value="Leave">Leave</option>
+                <option value="Half-Day">Half-Day</option>
+              </select>{" "}
+              <select
+                name="department"
+                value={newAttendanceData.department}
+                onChange={handleInputChange}
+                className="w-full p-2 border rounded"
+              >
+                <option value="">Selected department</option>
+                <option value="Ambulance">Ambulance</option>
+                <option value="ER">ER</option>
+                <option value="Leave">Leave</option>
+                <option value="ICU">ICU</option>
+                <option value="General">General</option>
+                <option value="Administration">Administration</option>
                 <option value="Half-Day">Half-Day</option>
               </select>
               <input

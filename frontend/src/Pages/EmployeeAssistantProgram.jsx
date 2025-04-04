@@ -11,7 +11,7 @@ const EmployeeAssistantProgram = ({ profile }) => {
   const [modalType, setModalType] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [createModalOpen, setCreateModalOpen] = useState(false);
-  const [editModalOpen, setEditModalOpen] = useState(false); // New state for edit modal
+  const [editModalOpen, setEditModalOpen] = useState(false);
   const [newAssistantData, setNewAssistantData] = useState({
     employeeId: "",
     programName: "",
@@ -21,7 +21,6 @@ const EmployeeAssistantProgram = ({ profile }) => {
     remarks: "",
   });
 
-  // Fetch
   useEffect(() => {
     fetchData();
   }, []);
@@ -38,7 +37,6 @@ const EmployeeAssistantProgram = ({ profile }) => {
     }
   };
 
-  // Sample data for employee assistant programs
   const data = [
     {
       employeeId: "EMP001",
@@ -112,31 +110,30 @@ const EmployeeAssistantProgram = ({ profile }) => {
     }
   };
 
-  // Function to handle edit button click
   const handleEditClick = (data) => {
     setSelectedData(data);
-    setNewAssistantData(data); // Pre-fill the form with selected data
-    setEditModalOpen(true); // Open the edit modal
+    setNewAssistantData(data);
+    setEditModalOpen(true);
   };
 
-  // Function to handle update assistant program
   const handleUpdateAssistantProgram = async () => {
     try {
       const response = await axios.put(
         `${apiURL}/api/employee-assistant-programs/${selectedData._id}`,
-        selectedData
+        newAssistantData
       );
 
       fetchData();
       toast.success("Update successfully");
-
-      // Update the local state if needed
-
-      setShowModal(false);
-      setSelectedData(null);
-
-      setEditModalOpen(false); // Close the edit modal
-      setSelectedData(null); // Reset selected data
+      setEditModalOpen(false);
+      setNewAssistantData({
+        employeeId: "",
+        programName: "",
+        startDate: "",
+        endDate: "",
+        status: "Active",
+        remarks: "",
+      });
     } catch (error) {
       console.log(error?.response.data.message);
       toast.error("Failed to update payroll");
@@ -160,12 +157,14 @@ const EmployeeAssistantProgram = ({ profile }) => {
         {
           title: "Start Date",
           data: "startDate",
-          render: (data) => `${data ? data : "N/A"}`,
+          render: (data) =>
+            `${data ? new Date(data).toLocaleDateString() : "N/A"}`,
         },
         {
           title: "End Date",
           data: "endDate",
-          render: (data) => `${data ? data : "N/A"}`,
+          render: (data) =>
+            `${data ? new Date(data).toLocaleDateString() : "N/A"}`,
         },
         {
           title: "Status",
@@ -246,7 +245,7 @@ const EmployeeAssistantProgram = ({ profile }) => {
         const editBtn = row.querySelector(`#editBtn_${data?.employeeId}`);
         if (editBtn) {
           editBtn.addEventListener("click", () => {
-            handleEditClick(data); // Open edit modal with selected data
+            handleEditClick(data);
           });
         }
       },
@@ -288,55 +287,87 @@ const EmployeeAssistantProgram = ({ profile }) => {
               Create Assistant Program
             </h3>
             <div className="space-y-4 mt-4">
-              <input
-                type="text"
-                name="employeeId"
-                placeholder="Employee ID"
-                value={newAssistantData.employeeId}
-                onChange={handleInputChange}
-                className="w-full p-2 border rounded"
-              />
-              <input
-                type="text"
-                name="programName"
-                placeholder="Program Name"
-                value={newAssistantData.programName}
-                onChange={handleInputChange}
-                className="w-full p-2 border rounded"
-              />
-              <input
-                type="date"
-                name="startDate"
-                placeholder="Start Date"
-                value={newAssistantData.startDate}
-                onChange={handleInputChange}
-                className="w-full p-2 border rounded"
-              />
-              <input
-                type="date"
-                name="endDate"
-                placeholder="End Date"
-                value={newAssistantData.endDate}
-                onChange={handleInputChange}
-                className="w-full p-2 border rounded"
-              />
-              <select
-                name="status"
-                value={newAssistantData.status}
-                onChange={handleInputChange}
-                className="w-full p-2 border rounded"
-              >
-                <option value="Active">Active</option>
-                <option value="Inactive">Inactive</option>
-              </select>
-              <input
-                type="text"
-                name="remarks"
-                placeholder="Remarks"
-                value={newAssistantData.remarks}
-                onChange={handleInputChange}
-                className="w-full p-2 border rounded"
-              />
+              <div className="flex flex-col">
+                <label className="mb-1 font-medium">Employee ID</label>
+                <input
+                  type="text"
+                  name="employeeId"
+                  placeholder="Employee ID"
+                  value={newAssistantData.employeeId}
+                  onChange={handleInputChange}
+                  className="w-full p-2 border rounded"
+                />
+              </div>
+
+              <div className="flex flex-col">
+                <label className="mb-1 font-medium">Program Name</label>
+                <select
+                  name="programName"
+                  value={newAssistantData.programName}
+                  onChange={handleInputChange}
+                  className="w-full p-2 border rounded"
+                >
+                  <option value="">Select Program</option>
+                  <option value="Critical Incident Stress Debriefing">
+                    Critical Incident Stress Debriefing
+                  </option>
+                  <option value="Financial Counseling">
+                    Financial Counseling
+                  </option>
+                  <option value="Yoga for Healthcare Workers">
+                    Yoga for Healthcare Workers
+                  </option>
+                </select>
+              </div>
+
+              <div className="flex flex-col">
+                <label className="mb-1 font-medium">Start Date</label>
+                <input
+                  type="date"
+                  name="startDate"
+                  placeholder="Start Date"
+                  value={newAssistantData.startDate}
+                  onChange={handleInputChange}
+                  className="w-full p-2 border rounded"
+                />
+              </div>
+
+              <div className="flex flex-col">
+                <label className="mb-1 font-medium">End Date</label>
+                <input
+                  type="date"
+                  name="endDate"
+                  placeholder="End Date"
+                  value={newAssistantData.endDate}
+                  onChange={handleInputChange}
+                  className="w-full p-2 border rounded"
+                />
+              </div>
+
+              <div className="flex flex-col">
+                <label className="mb-1 font-medium">Status</label>
+                <select
+                  name="status"
+                  value={newAssistantData.status}
+                  onChange={handleInputChange}
+                  className="w-full p-2 border rounded"
+                >
+                  <option value="Active">Active</option>
+                  <option value="Inactive">Inactive</option>
+                </select>
+              </div>
+
+              <div className="flex flex-col">
+                <label className="mb-1 font-medium">Remarks</label>
+                <input
+                  type="text"
+                  name="remarks"
+                  placeholder="Remarks"
+                  value={newAssistantData.remarks}
+                  onChange={handleInputChange}
+                  className="w-full p-2 border rounded"
+                />
+              </div>
             </div>
             <div className="flex justify-end gap-4 mt-4">
               <button
@@ -367,70 +398,94 @@ const EmployeeAssistantProgram = ({ profile }) => {
               Edit Assistant Program
             </h3>
             <div className="space-y-4 mt-4">
-              <input
-                type="text"
-                name="employeeId"
-                placeholder="Employee ID"
-                value={newAssistantData.employeeId}
-                onChange={handleInputChange}
-                className="w-full p-2 border rounded"
-                disabled // Disable editing of Employee ID
-              />
-              <input
-                type="text"
-                name="programName"
-                placeholder="Program Name"
-                value={newAssistantData.programName}
-                onChange={handleInputChange}
-                className="w-full p-2 border rounded"
-              />
-              <input
-                type="date"
-                name="startDate"
-                placeholder="Start Date"
-                value={newAssistantData.startDate}
-                onChange={handleInputChange}
-                className="w-full p-2 border rounded"
-              />
-              <input
-                type="date"
-                name="endDate"
-                placeholder="End Date"
-                value={newAssistantData.endDate}
-                onChange={handleInputChange}
-                className="w-full p-2 border rounded"
-              />
-              <select
-                name="status"
-                value={newAssistantData.status}
-                onChange={handleInputChange}
-                className="w-full p-2 border rounded"
-              >
-                <option value="Active">Active</option>
-                <option value="Inactive">Inactive</option>
-              </select>
-              <input
-                type="text"
-                name="remarks"
-                placeholder="Remarks"
-                value={newAssistantData.remarks}
-                onChange={handleInputChange}
-                className="w-full p-2 border rounded"
-              />
+              <div className="flex flex-col">
+                <label className="mb-1 font-medium">Employee ID</label>
+                <input
+                  type="text"
+                  name="employeeId"
+                  placeholder="Employee ID"
+                  value={newAssistantData.employeeId}
+                  onChange={handleInputChange}
+                  className="w-full p-2 border rounded"
+                  disabled
+                />
+              </div>
+
+              <div className="flex flex-col">
+                <label className="mb-1 font-medium">Program Name</label>
+                <select
+                  name="programName"
+                  value={newAssistantData.programName}
+                  onChange={handleInputChange}
+                  className="w-full p-2 border rounded"
+                >
+                  <option value="">Select Program</option>
+                  <option value="Critical Incident Stress Debriefing">
+                    Critical Incident Stress Debriefing
+                  </option>
+                  <option value="Financial Counseling">
+                    Financial Counseling
+                  </option>
+                  <option value="Yoga for Healthcare Workers">
+                    Yoga for Healthcare Workers
+                  </option>
+                </select>
+              </div>
+
+              <div className="flex flex-col">
+                <label className="mb-1 font-medium">Start Date</label>
+                <input
+                  type="date"
+                  name="startDate"
+                  placeholder="Start Date"
+                  value={newAssistantData.startDate}
+                  onChange={handleInputChange}
+                  className="w-full p-2 border rounded"
+                />
+              </div>
+
+              <div className="flex flex-col">
+                <label className="mb-1 font-medium">End Date</label>
+                <input
+                  type="date"
+                  name="endDate"
+                  placeholder="End Date"
+                  value={newAssistantData.endDate}
+                  onChange={handleInputChange}
+                  className="w-full p-2 border rounded"
+                />
+              </div>
+
+              <div className="flex flex-col">
+                <label className="mb-1 font-medium">Status</label>
+                <select
+                  name="status"
+                  value={newAssistantData.status}
+                  onChange={handleInputChange}
+                  className="w-full p-2 border rounded"
+                >
+                  <option value="Active">Active</option>
+                  <option value="Inactive">Inactive</option>
+                </select>
+              </div>
+
+              <div className="flex flex-col">
+                <label className="mb-1 font-medium">Remarks</label>
+                <input
+                  type="text"
+                  name="remarks"
+                  placeholder="Remarks"
+                  value={newAssistantData.remarks}
+                  onChange={handleInputChange}
+                  className="w-full p-2 border rounded"
+                />
+              </div>
             </div>
             <div className="flex justify-end gap-4 mt-4">
               <button
                 onClick={() => {
                   handleUpdateAssistantProgram();
                   setEditModalOpen(false);
-                  setNewAssistantData({
-                    employeeId: "",
-                    programName: "",
-                    startDate: "",
-                    endDate: "",
-                    status: "Active",
-                    remarks: "",
-                  });
                 }}
                 className="bg-blue-500 text-white px-4 py-2 rounded-md"
               >
@@ -438,14 +493,6 @@ const EmployeeAssistantProgram = ({ profile }) => {
               </button>
               <button
                 onClick={() => {
-                  setNewAssistantData({
-                    employeeId: "",
-                    programName: "",
-                    startDate: "",
-                    endDate: "",
-                    status: "Active",
-                    remarks: "",
-                  });
                   setEditModalOpen(false);
                 }}
                 className="bg-gray-500 text-white px-4 py-2 rounded-md"

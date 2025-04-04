@@ -155,21 +155,22 @@ DELETE http://localhost:8051/api/employee-engagements/EMP001
 ### 4. TimeAndAttendance APIs
 
 ### Create a new TimeAndAttendance record
-POST http://localhost:8051/api/time-and-attendances
+POST http://localhost:8053/api/time-and-attendances
 Content-Type: application/json
 
 {
-  "employeeId": "EMP001",
+  "employeeId": "EMP010",
   "date": "2023-10-01",
   "clockIn": "09:00",
   "clockOut": "17:00",
   "totalHours": 8,
   "status": "Present",
-  "remarks": "On time"
+  "remarks": "On time",
+  "department":"Ambulance"
 }
 
 ### Get all TimeAndAttendance records
-GET http://localhost:8051/api/time-and-attendances
+GET http://localhost:8053/api/time-and-attendances
 
 ### Get TimeAndAttendance record by ID
 GET http://localhost:8051/api/time-and-attendances/EMP001
@@ -188,7 +189,7 @@ Content-Type: application/json
 }
 
 ### Delete TimeAndAttendance record
-DELETE http://localhost:8051/api/time-and-attendances/EMP001
+DELETE http://localhost:8053/api/time-and-attendances/67efe751e2041a1566c70dc5
 
 ### 5. EmployeeAssistantProgram APIs
 

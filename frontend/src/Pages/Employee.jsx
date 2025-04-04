@@ -26,6 +26,8 @@ const Employee = ({ profile }) => {
     attendance: [],
   });
 
+  console.log(profile);
+
   useEffect(() => {
     fetchData();
   }, []);
