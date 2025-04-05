@@ -371,9 +371,7 @@ function FaceDetection() {
       );
 
       if (response.success) {
-        setMessage(
-          `Clocked in as ${response.employee} (${response.department})`
-        );
+        setMessage(`Clocked in as (${response.department})`);
       } else {
         throw new Error(response.message || "Verification failed");
       }

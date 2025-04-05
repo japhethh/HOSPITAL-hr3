@@ -17,7 +17,7 @@ POST http://localhost:8053/api/employees
 Content-Type: application/json
 
 {
-  "employeeId": "EMP69",
+  "employeeId": "EMP001",
   "firstName": "Mark",
   "lastName": "Padilia",
   "email": "mark@example.com",
@@ -188,7 +188,7 @@ Content-Type: application/json
 }
 
 ### Delete TimeAndAttendance record
-DELETE http://localhost:8053/api/time-and-attendances/67efe751e2041a1566c70dc5
+DELETE http://localhost:8053/api/time-and-attendances/67f0830450cf8fb13ed43dc5
 
 ### 5. EmployeeAssistantProgram APIs
 
