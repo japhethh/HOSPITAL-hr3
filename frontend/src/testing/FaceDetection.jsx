@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import * as faceapi from "face-api.js";
+import * as faceapi from "@vladmandic/face-api";
 import axios from "axios";
 import { apiURL } from "../context/Store";
 
@@ -19,40 +19,180 @@ function FaceDetection() {
   const [modelsLoaded, setModelsLoaded] = useState(false);
   const [detectionScore, setDetectionScore] = useState(0);
   const [showLandmarks, setShowLandmarks] = useState(true);
+  const [cameraConsent, setCameraConsent] = useState(false);
 
-  // Initialize camera and models
+  // Encrypt face descriptor
+  const encryptDescriptor = async (descriptor) => {
+    try {
+      if (!window.crypto || !window.crypto.subtle) {
+        throw new Error("Web Crypto API not available");
+      }
+
+      const key = await window.crypto.subtle.generateKey(
+        { name: "AES-GCM", length: 256 },
+        true,
+        ["encrypt", "decrypt"]
+      );
+
+      const iv = window.crypto.getRandomValues(new Uint8Array(12));
+      const encrypted = await window.crypto.subtle.encrypt(
+        { name: "AES-GCM", iv },
+        key,
+        new Float32Array(descriptor).buffer
+      );
+
+      return {
+        encryptedData: Array.from(new Uint8Array(encrypted)),
+        iv: Array.from(iv),
+        keyAlgorithm: key.algorithm,
+      };
+    } catch (error) {
+      console.error("Encryption failed:", error);
+      throw error;
+    }
+  };
+
+  // Secure API call
+  const secureApiCall = async (url, data) => {
+    const csrfToken = document.querySelector(
+      'meta[name="csrf-token"]'
+    )?.content;
+
+    const headers = {
+      "Content-Type": "application/json",
+      "X-Requested-With": "XMLHttpRequest",
+      "X-CSRF-Token": csrfToken || "",
+      "X-Content-Type-Options": "nosniff",
+    };
+
+    try {
+      const response = await axios.post(url, data, {
+        headers,
+        timeout: 10000,
+        withCredentials: true,
+      });
+
+      if (!response.data) {
+        throw new Error("Empty response from server");
+      }
+
+      return response.data;
+    } catch (error) {
+      console.error("API Error:", error);
+      throw error;
+    }
+  };
+
+  // Initialize camera with privacy controls
+  const initCamera = async () => {
+    try {
+      // Check camera permissions
+      if (navigator.permissions) {
+        const permissionStatus = await navigator.permissions.query({
+          name: "camera",
+        });
+        if (permissionStatus.state === "denied") {
+          throw new Error("Camera access denied by user");
+        }
+      }
+
+      // Request user consent
+      if (!localStorage.getItem("cameraConsent")) {
+        const consent = window.confirm(
+          "This application requires camera access for face recognition. " +
+            "No images or video are stored. Do you consent to camera access?"
+        );
+
+        if (!consent) throw new Error("User denied camera access");
+        localStorage.setItem("cameraConsent", "true");
+        setCameraConsent(true);
+      } else {
+        setCameraConsent(true);
+      }
+
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: "user",
+          width: { ideal: 640 },
+          height: { ideal: 480 },
+        },
+        audio: false,
+      });
+
+      return stream;
+    } catch (error) {
+      console.error("Camera initialization error:", error);
+      throw error;
+    }
+  };
+
+  // Process face detection with quality checks
+  const processFaceDetection = async (videoElement) => {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+
+    try {
+      const detections = await faceapi
+        .detectAllFaces(
+          videoElement,
+          new faceapi.TinyFaceDetectorOptions({
+            inputSize: 512,
+            scoreThreshold: 0.5,
+          }),
+          { signal: controller.signal }
+        )
+        .withFaceLandmarks()
+        .withFaceDescriptors();
+
+      clearTimeout(timeout);
+
+      if (detections.length === 0) {
+        return null;
+      }
+
+      // Select the best detection
+      const bestDetection = detections.reduce((best, current) =>
+        current.detection.score > best.detection.score ? current : best
+      );
+
+      // Validate detection quality
+      if (bestDetection.detection.score < 0.6) {
+        return null;
+      }
+
+      return {
+        descriptor: Array.from(bestDetection.descriptor),
+        score: bestDetection.detection.score,
+      };
+    } catch (error) {
+      clearTimeout(timeout);
+      console.error("Face processing error:", error);
+      return null;
+    }
+  };
+
+  // Initialize face detection models and camera
   useEffect(() => {
     let isMounted = true;
+    let streamCleanup = null;
+
     const initFaceDetection = async () => {
       try {
         console.log("Loading face detection models...");
 
-        // Load models from CDN
-        await Promise.all([
-          faceapi.nets.tinyFaceDetector.loadFromUri(
-            "https://justadudewhohacks.github.io/face-api.js/models"
-          ),
-          faceapi.nets.faceLandmark68Net.loadFromUri(
-            "https://justadudewhohacks.github.io/face-api.js/models"
-          ),
-          faceapi.nets.faceRecognitionNet.loadFromUri(
-            "https://justadudewhohacks.github.io/face-api.js/models"
-          ),
-        ]);
+        const MODEL_URL = "/models"; // Changed to local models for better security
+
+        await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+        await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
+        await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
 
         if (!isMounted) return;
 
         setModelsLoaded(true);
         console.log("All models loaded successfully");
 
-        // Get camera streams
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            facingMode: "user",
-            width: 640,
-            height: 480,
-          },
-        });
+        // Initialize camera
+        const stream = await initCamera();
 
         if (videoRef.current && isMounted) {
           videoRef.current.srcObject = stream;
@@ -61,6 +201,10 @@ function FaceDetection() {
             console.log("Camera stream ready");
             setIsCameraReady(true);
             startDetection();
+          };
+
+          streamCleanup = () => {
+            stream.getTracks().forEach((track) => track.stop());
           };
         }
       } catch (error) {
@@ -76,13 +220,11 @@ function FaceDetection() {
     return () => {
       isMounted = false;
       stopDetection();
-      if (videoRef.current?.srcObject) {
-        videoRef.current.srcObject.getTracks().forEach((track) => track.stop());
-      }
+      if (streamCleanup) streamCleanup();
     };
   }, []);
 
-  // Enhanced startDetection with better visual feedback
+  // Face detection rendering
   const startDetection = () => {
     if (!videoRef.current || !canvasRef.current || !modelsLoaded) {
       console.log("Detection prerequisites not met - retrying...");
@@ -121,7 +263,6 @@ function FaceDetection() {
           const score = detections[0].detection.score;
           setDetectionScore(score);
 
-          // Visual feedback - different colors based on detection quality
           const color =
             score > 0.7 ? "#00FF00" : score > 0.5 ? "#FFFF00" : "#FF0000";
 
@@ -130,23 +271,17 @@ function FaceDetection() {
             color,
           });
 
-          // Draw landmarks if enabled
           if (showLandmarks) {
             faceapi.draw.drawFaceLandmarks(canvas, resizedDetections, {
               lineWidth: 1,
               color: "#00FFFF",
-              drawLines: true,
-              drawPoints: true,
-              pointSize: 2,
             });
           }
 
-          // Real-time feedback text
           ctx.font = "16px Arial";
           ctx.fillStyle = color;
           ctx.fillText(`Quality: ${Math.round(score * 100)}%`, 20, 30);
         } else {
-          // Feedback when no face detected
           ctx.font = "16px Arial";
           ctx.fillStyle = "#FFFFFF";
           ctx.fillText("Position your face in the frame", 20, 30);
@@ -159,148 +294,11 @@ function FaceDetection() {
     detectionIntervalRef.current = setInterval(detect, 200);
   };
 
-  // Stop face detection
   const stopDetection = () => {
     if (detectionIntervalRef.current) {
       clearInterval(detectionIntervalRef.current);
       detectionIntervalRef.current = null;
     }
-  };
-
-  // Enhanced face descriptor capture with better feedback
-  const captureFaceDescriptor = async () => {
-    setIsProcessing(true);
-    setMessage("Starting face capture...");
-
-    // Clear canvas before starting capture
-    const ctx = canvasRef.current?.getContext("2d");
-    if (ctx) {
-      ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-    }
-
-    const maxAttempts = 5; // Increased from 3 to 5 attempts
-    let attempts = 0;
-    let bestDescriptor = null;
-    let bestScore = 0;
-
-    while (attempts < maxAttempts) {
-      attempts++;
-      setMessage(`Scanning your face... Attempt ${attempts}/${maxAttempts}`);
-
-      try {
-        // Perform a single detection with higher quality settings
-        const detection = await faceapi
-          .detectSingleFace(
-            videoRef.current,
-            new faceapi.TinyFaceDetectorOptions({
-              inputSize: 512,
-              scoreThreshold: 0.6, // Increased threshold for better quality
-            })
-          )
-          .withFaceLandmarks()
-          .withFaceDescriptor();
-
-        if (!detection) {
-          setMessage("No face detected - please look directly at the camera");
-          await new Promise((resolve) => setTimeout(resolve, 800));
-          continue;
-        }
-
-        // Visual feedback - draw detection box in blue during capture
-        const displaySize = {
-          width: videoRef.current.videoWidth,
-          height: videoRef.current.videoHeight,
-        };
-        const resizedDetection = faceapi.resizeResults(detection, displaySize);
-
-        if (ctx) {
-          faceapi.draw.drawDetections(canvasRef.current, resizedDetection, {
-            lineWidth: 3,
-            color: "blue",
-          });
-
-          if (showLandmarks) {
-            faceapi.draw.drawFaceLandmarks(
-              canvasRef.current,
-              resizedDetection,
-              {
-                lineWidth: 1,
-                color: "cyan",
-              }
-            );
-          }
-        }
-
-        const score = detection.detection.score;
-        setDetectionScore(score);
-
-        // Enhanced quality checks
-        const landmarks = detection.landmarks;
-        const jawOutline = landmarks.getJawOutline();
-        const jawDistance = faceapi.euclideanDistance(
-          jawOutline[0],
-          jawOutline[jawOutline.length - 1]
-        );
-
-        // Visual feedback for distance
-        if (jawDistance < 80) {
-          // Increased minimum distance
-          setMessage("Move slightly closer to the camera");
-          await new Promise((resolve) => setTimeout(resolve, 800));
-          continue;
-        }
-
-        if (jawDistance > 200) {
-          // Added maximum distance check
-          setMessage("Move slightly further from the camera");
-          await new Promise((resolve) => setTimeout(resolve, 800));
-          continue;
-        }
-
-        if (score < 0.6) {
-          // Increased minimum score
-          setMessage("Hold still and face the camera directly");
-          await new Promise((resolve) => setTimeout(resolve, 800));
-          continue;
-        }
-
-        const descriptor = Array.from(detection.descriptor);
-        if (!descriptor || descriptor.length !== 128) {
-          setMessage("Error in face processing - trying again");
-          await new Promise((resolve) => setTimeout(resolve, 500));
-          continue;
-        }
-
-        // Track best descriptor
-        if (score > bestScore) {
-          bestScore = score;
-          bestDescriptor = descriptor;
-        }
-
-        // If high quality, return immediately
-        if (score >= 0.8) {
-          // Increased threshold for immediate acceptance
-          setMessage("Face captured successfully!");
-          return descriptor;
-        }
-
-        await new Promise((resolve) => setTimeout(resolve, 800));
-      } catch (error) {
-        console.error(`Attempt ${attempts} failed:`, error);
-        setMessage(`Error: ${error.message}`);
-        await new Promise((resolve) => setTimeout(resolve, 500));
-      }
-    }
-
-    setIsProcessing(false);
-
-    if (bestDescriptor) {
-      setMessage(`Best quality capture (${Math.round(bestScore * 100)}%)`);
-      return bestDescriptor;
-    }
-
-    setMessage("Failed to capture face - please try again");
-    return null;
   };
 
   // Handle registration
@@ -310,55 +308,90 @@ function FaceDetection() {
       return;
     }
 
-    const faceDescriptor = await captureFaceDescriptor();
-    if (!faceDescriptor) return;
+    setIsProcessing(true);
+    setMessage("Starting secure face capture...");
 
     try {
-      setMessage("Registering face...");
-      const response = await axios.post(
+      const faceData = await processFaceDetection(videoRef.current);
+      if (!faceData) {
+        setMessage("Could not capture face. Please try again.");
+        setIsProcessing(false);
+        return;
+      }
+
+      const encryptedData = await encryptDescriptor(faceData.descriptor);
+
+      console.log(encryptedData);
+      console.log(faceData.score);
+      const response = await secureApiCall(
         `${apiURL}/api/attendance-face/register-face`,
-        { employeeId, faceDescriptor },
-        { timeout: 10000 }
+        {
+          employeeId,
+          faceData: encryptedData,
+          qualityScore: faceData.score,
+        }
       );
 
-      if (response.data.success) {
-        setMessage("Registration successful!");
+      if (response.success) {
+        setMessage("Secure registration successful!");
         setMode("clock-in");
         setEmployeeId("");
       } else {
-        throw new Error(response.data.message || "Registration failed");
+        throw new Error(response.message || "Registration failed");
       }
     } catch (error) {
       console.error("Registration error:", error);
-      setMessage(error.response?.data?.message || error.message);
+      setMessage(error.message);
+    } finally {
+      setIsProcessing(false);
     }
   };
 
   // Handle clock in
   const handleClockIn = async () => {
-    const faceDescriptor = await captureFaceDescriptor();
-    if (!faceDescriptor) return;
+    setIsProcessing(true);
+    setMessage("Starting secure face verification...");
 
     try {
-      setMessage("Verifying identity...");
-      const response = await axios.post(
+      const faceData = await processFaceDetection(videoRef.current);
+      if (!faceData) {
+        setMessage("Could not verify face. Please try again.");
+        setIsProcessing(false);
+        return;
+      }
+
+      const encryptedData = await encryptDescriptor(faceData.descriptor);
+
+      const response = await secureApiCall(
         `${apiURL}/api/attendance-face/clock-in`,
-        { faceDescriptor },
-        { timeout: 10000 }
+        {
+          faceData: encryptedData,
+          qualityScore: faceData.score,
+        }
       );
 
-      setMessage(
-        `Clocked in as ${response.data.employee} (${response.data.department})`
-      );
+      if (response.success) {
+        setMessage(
+          `Clocked in as ${response.employee} (${response.department})`
+        );
+      } else {
+        throw new Error(response.message || "Verification failed");
+      }
     } catch (error) {
       console.error("Clock in error:", error);
-      setMessage(error.response?.data?.message || "Recognition failed");
+      setMessage(error.message);
+    } finally {
+      setIsProcessing(false);
     }
   };
 
+  // Render UI
   return (
     <div className="app-container">
       <h1 className="text-center my-3">Face Recognition Attendance</h1>
+      <p className="text-center text-sm text-gray-600 mb-4">
+        {cameraConsent ? "Camera access granted" : "Camera access required"}
+      </p>
 
       <div className="mode-selector flex justify-center items-center font-bold gap-2 mb-4">
         <button
@@ -405,6 +438,7 @@ function FaceDetection() {
           muted
           playsInline
           className="video-element w-full h-full object-cover"
+          style={{ transform: "scaleX(-1)" }}
         />
         <canvas
           ref={canvasRef}
@@ -473,9 +507,16 @@ function FaceDetection() {
         <div className="text-center mt-4 p-3 bg-yellow-100 text-yellow-700 rounded">
           {window.isSecureContext
             ? "Initializing camera..."
-            : "Please use HTTPS or localhost"}
+            : "Please use HTTPS or localhost for security"}
         </div>
       )}
+
+      <div className="privacy-notice text-center text-xs text-gray-500 mt-6 px-4">
+        <p>
+          This system uses face recognition for authentication purposes only.
+        </p>
+        <p>No images or video recordings are stored. Face data is encrypted.</p>
+      </div>
     </div>
   );
 }

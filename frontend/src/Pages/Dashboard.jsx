@@ -161,7 +161,7 @@ function AdminPage() {
                   </NavLink>
                 </li> */}
 
-                {/* <li className="font-semibold">
+                <li className="font-semibold">
                   <NavLink
                     to="accountsManagement"
                     activeClassName="bg-gray-700"
@@ -169,7 +169,7 @@ function AdminPage() {
                     <MdSupervisorAccount />
                     USER MANAGEMENT
                   </NavLink>
-                </li> */}
+                </li>
               </ul>
             </ul>
           </div>

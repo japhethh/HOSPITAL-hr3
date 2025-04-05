@@ -13,17 +13,17 @@ Content-Type: application/json
   "fullName":"Martin Palku"
 }
 ### Create a new Employee
-POST http://localhost:8051/api/employees
+POST http://localhost:8053/api/employees
 Content-Type: application/json
 
 {
-  "employeeId": "EMP123",
-  "firstName": "Boy",
-  "lastName": "boy",
-  "email": "boy@example.com",
+  "employeeId": "EMP69",
+  "firstName": "Mark",
+  "lastName": "Padilia",
+  "email": "mark@example.com",
   "phone": "123-456-7890",
-  "department": "Surgery",
-  "position": "Surgeon",
+  "department": "Administration	",
+  "position": "Administration	",
   "hireDate": "2018-06-15",
   "salary": 120000,
   "status": "Active",
@@ -31,7 +31,6 @@ Content-Type: application/json
     {
       "date": "2023-10-01",
       "clockIn": "09:00",
-      "clockOut": "17:00",
       "totalHours": 8,
       "status": "Present",
       "remarks": "On time"
@@ -175,10 +174,11 @@ GET http://localhost:8053/api/time-and-attendances
 GET http://localhost:8051/api/time-and-attendances/EMP001
 
 ### Update TimeAndAttendance record
-PUT http://localhost:8051/api/time-and-attendances/EMP001
+PUT http://localhost:8053/api/time-and-attendances/EMP1241
 Content-Type: application/json
 
 {
+  "employeeId": "EMP1241",
   "date": "2023-10-01",
   "clockIn": "09:00",
   "clockOut": "17:00",

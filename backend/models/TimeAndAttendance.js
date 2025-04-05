@@ -1,17 +1,16 @@
 const mongoose = require("mongoose");
 
 const TimeAndAttendanceSchema = new mongoose.Schema({
-  employeeId: { type: String, required: true },
-  date: { type: Date, required: true },
-  clockIn: { type: String, required: true },
-  clockOut: { type: String, required: true },
-  totalHours: { type: Number, required: true },
-  status: { type: String, required: true },
-  remarks: { type: String, required: true },
+  employeeId: { type: String, required: false },
+  date: { type: Date, required: false },
+  clockIn: { type: String, required: false },
+  clockOut: { type: String, required: false },
+  totalHours: { type: Number, required: false },
+  status: { type: String, required: false },
+  remarks: { type: String, required: false },
   department: {
     type: String,
     required: false,
-    enum: ["Ambulance", "ER", "ICU", "General", "Administration"],
   },
 });
 

@@ -4,7 +4,7 @@ import PayrollSystemItem from "../Components/PayrollSystemItem";
 import axios from "axios";
 import { apiURL } from "../context/Store";
 import { toast } from "react-toastify";
-
+import { Link } from "react-router-dom";
 const TimeAndAttendance = ({ profile }) => {
   const [attendanceData, setAttendanceData] = useState([]);
   const [selectedData, setSelectedData] = useState(null);
@@ -136,8 +136,18 @@ const TimeAndAttendance = ({ profile }) => {
                 : "N/A"
             }`,
         },
-        { title: "Clock In", data: "clockIn" },
-        { title: "Clock Out", data: "clockOut" },
+        {
+          title: "Clock In",
+          data: "clockIn",
+          render: (data) =>
+            `${data ? new Date(data).toLocaleDateString() : "N/A"}`,
+        },
+        {
+          title: "Clock Out",
+          data: "clockOut",
+          render: (data) =>
+            `${data ? new Date(data).toLocaleDateString() : "N/A"}`,
+        },
         { title: "Total Hours", data: "totalHours" },
         { title: "Status", data: "status" },
         {
@@ -235,11 +245,42 @@ const TimeAndAttendance = ({ profile }) => {
         title={"Time And Attendance Data"}
       />
 
-      <div className="flex justify-end items-center">
-        <button
-          className="bg-blue-500 py-2 px-4 rounded-md text-white font-semibold hover:bg-blue-400"
-          onClick={() => setCreateModalOpen(true)}
+      <div className="flex justify-end items-center gap-4">
+        <Link
+          to="/dashboard/faceDetection"
+          className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-lg transition-colors shadow-md hover:shadow-lg"
         >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-5 w-5"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fillRule="evenodd"
+              d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
+              clipRule="evenodd"
+            />
+          </svg>
+          Time In
+        </Link>
+
+        <button
+          onClick={() => setCreateModalOpen(true)}
+          className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg transition-colors shadow-md hover:shadow-lg"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-5 w-5"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fillRule="evenodd"
+              d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+              clipRule="evenodd"
+            />
+          </svg>
           Create Attendance
         </button>
       </div>
