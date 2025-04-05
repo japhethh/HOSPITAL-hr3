@@ -122,7 +122,14 @@ const login = async (req, res) => {
 // LOGOUT
 const logout = (req, res) => {
   const { username } = req.body;
-  res.clearCookie("token").send("User logged out");
+  // res.clearCookie("token").send("User logged out");
+
+  res.clearCookie("token", {
+    httpOnly: true,
+    sameSite: "strict",
+    secure: true,
+    path: "/"
+  });
   console.log(`${username} logged out`);
 };
 

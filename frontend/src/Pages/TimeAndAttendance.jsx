@@ -139,14 +139,12 @@ const TimeAndAttendance = ({ profile }) => {
         {
           title: "Clock In",
           data: "clockIn",
-          render: (data) =>
-            `${data ? new Date(data).toLocaleDateString() : "N/A"}`,
+          render: (data) => `${data ? data : "N/A"}`,
         },
         {
           title: "Clock Out",
           data: "clockOut",
-          render: (data) =>
-            `${data ? new Date(data).toLocaleDateString() : "N/A"}`,
+          render: (data) => `${data ? data : "N/A"}`,
         },
         { title: "Total Hours", data: "totalHours" },
         { title: "Status", data: "status" },

@@ -37,7 +37,8 @@ import FaceDetection from "../testing/faceDetection";
 function AdminPage() {
   const [isToggled, setIsToggled] = useState(true);
   const [isVerifying, setIsVerifying] = useState(true);
-  const [profile, setProfile] = useState("");
+  const [profile, setProfile] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const urlAPI = import.meta.env.VITE_API_URL;
   const navigate = useNavigate();
 
@@ -46,14 +47,25 @@ function AdminPage() {
   };
 
   const handleLogout = async () => {
-    await axios.post(
-      `${urlAPI}/auth-api/logout`,
-      { username: profile.username },
-      {
-        withCredentials: true,
-      }
-    );
-    navigate("/");
+    try {
+      await axios.post(
+        `${urlAPI}/auth-api/logout`,
+        { username: profile?.username },
+        {
+          withCredentials: true,
+        }
+      );
+
+      // Clear all auth state
+      setProfile(null);
+      setIsAuthenticated(false);
+
+      // Force full page reload to clear any cached data
+      window.location.href = "/";
+    } catch (error) {
+      console.error("Logout failed:", error);
+      toast.error("Logout failed. Please try again.");
+    }
   };
 
   useEffect(() => {
@@ -65,13 +77,12 @@ function AdminPage() {
 
         if (response) {
           setProfile(response.data);
+          setIsAuthenticated(true);
           setIsVerifying(false);
         }
       } catch (error) {
         console.log(error.response);
-        toast.error("You are not authorized to view this page", {
-          position: "top-right",
-        });
+        setIsAuthenticated(false);
         handleLogout();
       }
     };
@@ -85,6 +96,10 @@ function AdminPage() {
         <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
       </div>
     );
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/" replace />;
   }
 
   return (
@@ -146,28 +161,6 @@ function AdminPage() {
                   >
                     <MdAssistant />
                     Employee Engagement
-                  </NavLink>
-                </li>
-                {/* <li className="font-semibold">
-                  <NavLink to="leave" activeClassName="bg-gray-700">
-                    <FcLeave className="text-black"/>
-                    Leave
-                  </NavLink>
-                </li>
-                <li className="font-semibold">
-                  <NavLink to="salary" activeClassName="bg-gray-700">
-                    <FaRegMoneyBillAlt  />
-                    Salary
-                  </NavLink>
-                </li> */}
-
-                <li className="font-semibold">
-                  <NavLink
-                    to="accountsManagement"
-                    activeClassName="bg-gray-700"
-                  >
-                    <MdSupervisorAccount />
-                    USER MANAGEMENT
                   </NavLink>
                 </li>
               </ul>

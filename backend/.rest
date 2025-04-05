@@ -113,18 +113,18 @@ DELETE http://localhost:8051/api/payroll-systems/EMP001
 ### 3. EmployeeEngagement APIs
 
 ### Create a new EmployeeEngagement record
-POST http://localhost:8051/api/employee-engagements
+POST http://localhost:8053/api/employee-engagements
 Content-Type: application/json
 
 {
-  "employeeId": "EMP001",
-  "engagementType": "Survey",
-  "engagementDate": "2023-10-01",
-  "engagementDetails": "Annual Employee Satisfaction Survey",
-  "facilitator": "HR Team",
-  "status": "Completed",
-  "outcome": "Positive",
-  "remarks": "High participation rate and positive feedback."
+  "employeeId": "EMP005",
+  "engagementType": "Feedback",
+  "engagementDate": "2023-11-10",
+  "engagementDetails": "Performance Review Discussion",
+  "facilitator": "Supervisor",
+  "status": "Scheduled",
+  "outcome": "Pending",
+  "remarks": "Planned discussion about career growth."
 }
 
 ### Get all EmployeeEngagement records
