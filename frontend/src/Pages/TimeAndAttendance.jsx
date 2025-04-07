@@ -5,13 +5,24 @@ import axios from "axios";
 import { apiURL } from "../context/Store";
 import { toast } from "react-toastify";
 import { Link } from "react-router-dom";
+import { PDFDownloadLink } from "@react-pdf/renderer";
+import { AttendancePdfDocument } from "../Components/AttendancePdfDocument";
 const TimeAndAttendance = ({ profile }) => {
   const [attendanceData, setAttendanceData] = useState([]);
+  const [filteredData, setFilteredData] = useState([]);
   const [selectedData, setSelectedData] = useState(null);
   const [modalType, setModalType] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [createModalOpen, setCreateModalOpen] = useState(false);
-  const [editModalOpen, setEditModalOpen] = useState(false); // State for edit modal
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [filters, setFilters] = useState({
+    employeeId: "",
+    date: "",
+    status: "",
+    department: "",
+    search: "",
+  });
+
   const [newAttendanceData, setNewAttendanceData] = useState({
     employeeId: "",
     date: "",
@@ -28,10 +39,13 @@ const TimeAndAttendance = ({ profile }) => {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    applyFilters();
+  }, [attendanceData, filters]);
+
   const fetchData = async () => {
     try {
       const response = await axios.get(`${apiURL}/api/time-and-attendances`);
-      console.log(response.data);
       setAttendanceData(response.data);
     } catch (error) {
       console.log(error?.response.data.message);
@@ -44,6 +58,80 @@ const TimeAndAttendance = ({ profile }) => {
       ...newAttendanceData,
       [name]: value,
     });
+  };
+
+  const handleFilterChange = (e) => {
+    const { name, value } = e.target;
+    setFilters({
+      ...filters,
+      [name]: value,
+    });
+  };
+
+  const applyFilters = () => {
+    let result = [...attendanceData];
+
+    // Apply employee ID filter
+    if (filters.employeeId) {
+      result = result.filter((att) =>
+        att.employeeId.toLowerCase().includes(filters.employeeId.toLowerCase())
+      );
+    }
+
+    // Apply date filter
+    if (filters.date) {
+      result = result.filter(
+        (att) =>
+          new Date(att.date).toLocaleDateString() ===
+          new Date(filters.date).toLocaleDateString()
+      );
+    }
+
+    // Apply status filter
+    if (filters.status) {
+      result = result.filter(
+        (att) => att.status.toLowerCase() === filters.status.toLowerCase()
+      );
+    }
+
+    // Apply department filter
+    if (filters.department) {
+      result = result.filter((att) =>
+        att.department?.toLowerCase().includes(filters.department.toLowerCase())
+      );
+    }
+
+    // Apply search filter (searches employee ID and remarks)
+    if (filters.search) {
+      const searchTerm = filters.search.toLowerCase();
+      result = result.filter(
+        (att) =>
+          att.employeeId.toLowerCase().includes(searchTerm) ||
+          (att.remarks && att.remarks.toLowerCase().includes(searchTerm))
+      );
+    }
+
+    setFilteredData(result);
+  };
+
+  const resetFilters = () => {
+    setFilters({
+      employeeId: "",
+      date: "",
+      status: "",
+      department: "",
+      search: "",
+    });
+  };
+
+  const getUniqueValues = (key) => {
+    const unique = new Set();
+    attendanceData.forEach((att) => {
+      if (att[key]) {
+        unique.add(att[key]);
+      }
+    });
+    return Array.from(unique).sort();
   };
 
   const handleCreateAttendance = async () => {
@@ -64,6 +152,7 @@ const TimeAndAttendance = ({ profile }) => {
         totalHours: 0,
         status: "Present",
         remarks: "",
+        department: "",
       });
     } catch (error) {
       console.log(error?.response.data.message);
@@ -87,14 +176,12 @@ const TimeAndAttendance = ({ profile }) => {
     }
   };
 
-  // Function to handle edit button click
   const handleEditClick = (data) => {
     setSelectedData(data);
-    setNewAttendanceData(data); // Pre-fill the form with selected data
-    setEditModalOpen(true); // Open the edit modal
+    setNewAttendanceData(data);
+    setEditModalOpen(true);
   };
 
-  // Function to handle update attendance
   const handleUpdateAttendance = async () => {
     try {
       const response = await axios.put(
@@ -104,8 +191,8 @@ const TimeAndAttendance = ({ profile }) => {
 
       fetchData();
       toast.success("Attendance updated successfully!");
-      setEditModalOpen(false); // Close the edit modal
-      setSelectedData(null); // Reset selected data
+      setEditModalOpen(false);
+      setSelectedData(null);
       setNewAttendanceData({
         employeeId: "",
         date: "",
@@ -114,7 +201,8 @@ const TimeAndAttendance = ({ profile }) => {
         totalHours: 0,
         status: "Present",
         remarks: "",
-      }); // Reset the form
+        department: "",
+      });
     } catch (error) {
       console.log(error?.response.data.message);
       toast.error("Failed to update attendance.");
@@ -123,35 +211,31 @@ const TimeAndAttendance = ({ profile }) => {
 
   useEffect(() => {
     const table = new DataTable("#myTable", {
-      data: attendanceData,
+      data: filteredData.length > 0 ? filteredData : attendanceData,
       columns: [
         { title: "Employee ID", data: "employeeId" },
         {
           title: "Date",
           data: "date",
           render: (data) =>
-            `${
-              new Date(data).toLocaleString()
-                ? new Date(data).toLocaleString()
-                : "N/A"
-            }`,
+            data ? new Date(data).toLocaleDateString() : "N/A",
         },
         {
           title: "Clock In",
           data: "clockIn",
-          render: (data) => `${data ? data : "N/A"}`,
+          render: (data) => data || "N/A",
         },
         {
           title: "Clock Out",
           data: "clockOut",
-          render: (data) => `${data ? data : "N/A"}`,
+          render: (data) => data || "N/A",
         },
         { title: "Total Hours", data: "totalHours" },
         { title: "Status", data: "status" },
         {
           title: "Department",
           data: "department",
-          render: (data) => `${data ? data : "N/A"}`,
+          render: (data) => data || "N/A",
         },
         { title: "Remarks", data: "remarks" },
         {
@@ -174,8 +258,6 @@ const TimeAndAttendance = ({ profile }) => {
               </button>`
                  : ""
              }
-           
-              
               <button 
                 class="group relative inline-flex items-center justify-center w-8 h-8 overflow-hidden rounded-full bg-blue-50 hover:bg-blue-100 transition-all duration-300 ease-in-out" 
                 id="detailBtn_${data.employeeId}"
@@ -186,7 +268,6 @@ const TimeAndAttendance = ({ profile }) => {
                 </span>
                 <div class="absolute inset-0 border-2 border-blue-700 rounded-full opacity-0 group-hover:opacity-30 transition-opacity duration-300"></div>
               </button>
-              
               <button 
                 class="group relative inline-flex items-center justify-center w-8 h-8 overflow-hidden rounded-full bg-green-50 hover:bg-green-100 transition-all duration-300 ease-in-out" 
                 id="editBtn_${data.employeeId}"
@@ -223,7 +304,7 @@ const TimeAndAttendance = ({ profile }) => {
         const editBtn = row.querySelector(`#editBtn_${data?.employeeId}`);
         if (editBtn) {
           editBtn.addEventListener("click", () => {
-            handleEditClick(data); // Open edit modal with selected data
+            handleEditClick(data);
           });
         }
       },
@@ -234,7 +315,7 @@ const TimeAndAttendance = ({ profile }) => {
     return () => {
       table.destroy();
     };
-  }, [attendanceData]);
+  }, [attendanceData, filteredData]);
 
   return (
     <div className="p-4">
@@ -243,7 +324,127 @@ const TimeAndAttendance = ({ profile }) => {
         title={"Time And Attendance Data"}
       />
 
-      <div className="flex justify-end items-center gap-4">
+      {/* Filter Section */}
+      <div className="bg-white p-4 rounded-lg shadow-md mb-4">
+        <h3 className="text-lg font-semibold mb-3">Filters</h3>
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          {/* Search Filter */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Search
+            </label>
+            <input
+              type="text"
+              name="search"
+              value={filters.search}
+              onChange={handleFilterChange}
+              placeholder="Search by ID or remarks"
+              className="w-full p-2 border rounded"
+            />
+          </div>
+
+          {/* Employee ID Filter */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Employee ID
+            </label>
+            <input
+              type="text"
+              name="employeeId"
+              value={filters.employeeId}
+              onChange={handleFilterChange}
+              placeholder="Filter by Employee ID"
+              className="w-full p-2 border rounded"
+            />
+          </div>
+
+          {/* Date Filter */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Date
+            </label>
+            <input
+              type="date"
+              name="date"
+              value={filters.date}
+              onChange={handleFilterChange}
+              className="w-full p-2 border rounded"
+            />
+          </div>
+
+          {/* Status Filter */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Status
+            </label>
+            <select
+              name="status"
+              value={filters.status}
+              onChange={handleFilterChange}
+              className="w-full p-2 border rounded"
+            >
+              <option value="">All Statuses</option>
+              <option value="Present">Present</option>
+              <option value="Absent">Absent</option>
+              <option value="Leave">Leave</option>
+              <option value="Half-Day">Half-Day</option>
+            </select>
+          </div>
+
+          {/* Department Filter */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Department
+            </label>
+            <select
+              name="department"
+              value={filters.department}
+              onChange={handleFilterChange}
+              className="w-full p-2 border rounded"
+            >
+              <option value="">All Departments</option>
+              {getUniqueValues("department").map((dept) => (
+                <option key={dept} value={dept}>
+                  {dept}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div className="flex justify-end mt-3">
+          <button
+            onClick={resetFilters}
+            className="bg-gray-500 text-white px-4 py-2 rounded-md mr-2 hover:bg-gray-600"
+          >
+            Reset Filters
+          </button>
+        </div>
+      </div>
+
+      {/* PDF Export Button */}
+      <div className="flex justify-end items-center gap-4 mb-4">
+        <PDFDownloadLink
+          document={
+            <AttendancePdfDocument
+              attendanceData={
+                filteredData.length > 0 ? filteredData : attendanceData
+              }
+              filters={filters}
+              title="Attendance Report"
+            />
+          }
+          fileName="attendance_report.pdf"
+        >
+          {({ loading }) => (
+            <button
+              className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-500 transition-colors"
+              disabled={loading}
+            >
+              {loading ? "Preparing document..." : "Export to PDF"}
+            </button>
+          )}
+        </PDFDownloadLink>
         <Link
           to="/dashboard/faceDetection"
           className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-lg transition-colors shadow-md hover:shadow-lg"
@@ -282,6 +483,7 @@ const TimeAndAttendance = ({ profile }) => {
           Create Attendance
         </button>
       </div>
+
       <div className="overflow-x-auto">
         <table id="myTable" className="display">
           <thead className="bg-blue-500 text-white"></thead>
@@ -351,14 +553,12 @@ const TimeAndAttendance = ({ profile }) => {
                 onChange={handleInputChange}
                 className="w-full p-2 border rounded"
               >
-                <option value="">Selected department</option>
+                <option value="">Select department</option>
                 <option value="Ambulance">Ambulance</option>
                 <option value="ER">ER</option>
-                <option value="Leave">Leave</option>
                 <option value="ICU">ICU</option>
                 <option value="General">General</option>
                 <option value="Administration">Administration</option>
-                <option value="Half-Day">Half-Day</option>
               </select>
               <input
                 type="text"
@@ -400,7 +600,7 @@ const TimeAndAttendance = ({ profile }) => {
                 value={newAttendanceData.employeeId}
                 onChange={handleInputChange}
                 className="w-full p-2 border rounded"
-                disabled // Disable editing of Employee ID
+                disabled
               />
               <input
                 type="date"
@@ -444,21 +644,19 @@ const TimeAndAttendance = ({ profile }) => {
                 <option value="Absent">Absent</option>
                 <option value="Leave">Leave</option>
                 <option value="Half-Day">Half-Day</option>
-              </select>{" "}
+              </select>
               <select
                 name="department"
                 value={newAttendanceData.department}
                 onChange={handleInputChange}
                 className="w-full p-2 border rounded"
               >
-                <option value="">Selected department</option>
+                <option value="">Select department</option>
                 <option value="Ambulance">Ambulance</option>
                 <option value="ER">ER</option>
-                <option value="Leave">Leave</option>
                 <option value="ICU">ICU</option>
                 <option value="General">General</option>
                 <option value="Administration">Administration</option>
-                <option value="Half-Day">Half-Day</option>
               </select>
               <input
                 type="text"
@@ -487,6 +685,7 @@ const TimeAndAttendance = ({ profile }) => {
                     totalHours: 0,
                     status: "Present",
                     remarks: "",
+                    department: "",
                   });
                 }}
                 className="bg-gray-500 text-white px-4 py-2 rounded-md"
@@ -604,6 +803,16 @@ const TimeAndAttendance = ({ profile }) => {
                   </div>
                   <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
                     {selectedData?.status}
+                  </div>
+                </div>
+                <div className="flex border rounded-lg overflow-hidden">
+                  <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
+                    <label htmlFor="department" className="label">
+                      Department
+                    </label>
+                  </div>
+                  <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
+                    {selectedData?.department || "N/A"}
                   </div>
                 </div>
                 <div className="flex border rounded-lg overflow-hidden">

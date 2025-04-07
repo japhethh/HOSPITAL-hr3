@@ -17,3 +17,12 @@ body {
   align-items: center;
   height: 100vh;
 }
+@media print {
+  .dataTables_wrapper {
+    overflow: visible !important;
+    width: 100% !important;
+  }
+  table.dataTable {
+    width: 100% !important;
+  }
+}

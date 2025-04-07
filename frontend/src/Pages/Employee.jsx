@@ -1,17 +1,27 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import DataTable from "datatables.net-dt";
 import PayrollSystemItem from "../Components/PayrollSystemItem";
 import axios from "axios";
 import { apiURL } from "../context/Store";
 import { toast } from "react-toastify";
+import { PDFDownloadLink } from "@react-pdf/renderer";
+import { EmployeePdfDocument } from "../Components/EmployeePdfDocument";
 
 const Employee = ({ profile }) => {
   const [employeeData, setEmployeeData] = useState([]);
+  const [filteredData, setFilteredData] = useState([]);
   const [selectedData, setSelectedData] = useState(null);
   const [modalType, setModalType] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const [filters, setFilters] = useState({
+    department: "",
+    position: "",
+    status: "",
+    search: "",
+  });
+
   const [newEmployeeData, setNewEmployeeData] = useState({
     employeeId: "",
     firstName: "",
@@ -26,17 +36,18 @@ const Employee = ({ profile }) => {
     attendance: [],
   });
 
-  console.log(profile);
-
   useEffect(() => {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    applyFilters();
+  }, [employeeData, filters]);
+
   const fetchData = async () => {
     try {
       const response = await axios.get(`${apiURL}/api/employees`);
-      console.log(response.data);
-      setEmployeeData(response.data); // Set the fetched data to employeeData
+      setEmployeeData(response.data);
     } catch (error) {
       console.log(error?.response?.data?.message);
     }
@@ -50,6 +61,64 @@ const Employee = ({ profile }) => {
     });
   };
 
+  const handleFilterChange = (e) => {
+    const { name, value } = e.target;
+    setFilters({
+      ...filters,
+      [name]: value,
+    });
+  };
+
+  const applyFilters = () => {
+    let result = [...employeeData];
+
+    if (filters.department) {
+      result = result.filter((emp) =>
+        emp.department.toLowerCase().includes(filters.department.toLowerCase())
+      );
+    }
+
+    if (filters.position) {
+      result = result.filter((emp) =>
+        emp.position.toLowerCase().includes(filters.position.toLowerCase())
+      );
+    }
+
+    if (filters.status) {
+      result = result.filter(
+        (emp) => emp.status.toLowerCase() === filters.status.toLowerCase()
+      );
+    }
+
+    if (filters.search) {
+      const searchTerm = filters.search.toLowerCase();
+      result = result.filter(
+        (emp) =>
+          emp.firstName.toLowerCase().includes(searchTerm) ||
+          emp.lastName.toLowerCase().includes(searchTerm) ||
+          emp.email.toLowerCase().includes(searchTerm) ||
+          emp.employeeId.toLowerCase().includes(searchTerm)
+      );
+    }
+
+    setFilteredData(result);
+  };
+
+  const resetFilters = () => {
+    setFilters({
+      department: "",
+      position: "",
+      status: "",
+      search: "",
+    });
+  };
+
+  const getUniqueValues = (key) => {
+    const unique = new Set();
+    employeeData.forEach((emp) => unique.add(emp[key]));
+    return Array.from(unique).sort();
+  };
+
   const handleCreateEmployee = async () => {
     try {
       const response = await axios.post(
@@ -57,8 +126,8 @@ const Employee = ({ profile }) => {
         newEmployeeData
       );
       toast.success("Employee created successfully!");
-      fetchData(); // Refresh the data
-      setCreateModalOpen(false); // Close the modal
+      fetchData();
+      setCreateModalOpen(false);
       setNewEmployeeData({
         employeeId: "",
         firstName: "",
@@ -71,7 +140,7 @@ const Employee = ({ profile }) => {
         salary: 0,
         status: "Active",
         attendance: [],
-      }); // Reset the form
+      });
     } catch (error) {
       console.error("Error creating employee:", error);
       toast.error("Failed to create employee.");
@@ -82,9 +151,9 @@ const Employee = ({ profile }) => {
     try {
       await axios.delete(`${apiURL}/api/employees/${selectedData._id}`);
       toast.success("Employee deleted successfully!");
-      fetchData(); // Refresh the data
-      setShowModal(false); // Close the modal
-      setSelectedData(null); // Reset selected data
+      fetchData();
+      setShowModal(false);
+      setSelectedData(null);
     } catch (error) {
       console.error("Error deleting employee:", error);
       toast.error("Failed to delete employee.");
@@ -93,8 +162,8 @@ const Employee = ({ profile }) => {
 
   const handleEditClick = (data) => {
     setSelectedData(data);
-    setNewEmployeeData(data); // Pre-fill the form with selected data
-    setEditModalOpen(true); // Open the edit modal
+    setNewEmployeeData(data);
+    setEditModalOpen(true);
   };
 
   const handleUpdateEmployee = async () => {
@@ -104,18 +173,122 @@ const Employee = ({ profile }) => {
         newEmployeeData
       );
       toast.success("Employee updated successfully!");
-      fetchData(); // Refresh the data
-      setEditModalOpen(false); // Close the modal
-      setSelectedData(null); // Reset selected data
+      fetchData();
+      setEditModalOpen(false);
+      setSelectedData(null);
     } catch (error) {
       console.error("Error updating employee:", error);
       toast.error("Failed to update employee.");
     }
   };
 
+  const pdfRef = useRef();
+
+  const downloadPDF = async () => {
+    const input = pdfRef.current;
+
+    if (!input) {
+      toast.error("Failed to generate PDF - content not found");
+      return;
+    }
+
+    // Create a clone of the content to avoid modifying the original DOM
+    const clone = input.cloneNode(true);
+
+    // Function to replace unsupported CSS color functions
+    const replaceUnsupportedColors = (node) => {
+      if (node.style) {
+        // Replace oklch colors with standard colors
+        if (node.style.color.includes("oklch")) {
+          node.style.color = "#000000"; // Fallback to black
+        }
+        if (node.style.backgroundColor.includes("oklch")) {
+          node.style.backgroundColor = "#ffffff"; // Fallback to white
+        }
+      }
+
+      // Process child nodes
+      if (node.childNodes) {
+        node.childNodes.forEach(replaceUnsupportedColors);
+      }
+    };
+
+    // Process the clone
+    replaceUnsupportedColors(clone);
+
+    // Set up the clone for rendering
+    clone.style.position = "absolute";
+    clone.style.left = "-9999px";
+    clone.style.width = `${input.offsetWidth}px`;
+    clone.style.backgroundColor = "#ffffff";
+    document.body.appendChild(clone);
+
+    try {
+      const pdf = new jsPDF("p", "pt", "a4");
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const margin = 40;
+
+      const canvas = await html2canvas(clone, {
+        scale: 1,
+        logging: true,
+        useCORS: true,
+        scrollX: 0,
+        scrollY: 0,
+        backgroundColor: "#ffffff",
+        ignoreElements: (element) => {
+          return (
+            element.tagName === "BUTTON" ||
+            element.classList.contains("dataTables_paginate") ||
+            element.classList.contains("dataTables_info")
+          );
+        },
+      });
+
+      const imgData = canvas.toDataURL("image/png");
+      const imgWidth = pageWidth - margin * 2;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      // Add header
+      pdf.setFontSize(18);
+      pdf.setTextColor(40);
+      pdf.setFont("helvetica", "bold");
+      pdf.text("Employee Report", margin, margin + 20);
+
+      pdf.text(
+        `Generated: ${new Date().toLocaleString()}`,
+        pageWidth - margin,
+        margin + 20,
+        { align: "right" }
+      );
+
+      // Add content
+      pdf.addImage(imgData, "PNG", margin, margin + 40, imgWidth, imgHeight);
+
+      // Add page numbers
+      const pageCount = pdf.internal.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        pdf.setPage(i);
+        pdf.setFontSize(10);
+        pdf.text(
+          `Page ${i} of ${pageCount}`,
+          pageWidth / 2,
+          pdf.internal.pageSize.getHeight() - 20,
+          { align: "center" }
+        );
+      }
+
+      pdf.save("employee_report.pdf");
+    } catch (error) {
+      console.error("PDF generation error:", error);
+      toast.error("Failed to generate PDF");
+    } finally {
+      // Clean up
+      document.body.removeChild(clone);
+    }
+  };
   useEffect(() => {
     const table = new DataTable("#myTable", {
-      data: employeeData,
+      data: filteredData.length > 0 ? filteredData : employeeData,
       columns: [
         { title: "Employee ID", data: "employeeId" },
         {
@@ -160,17 +333,6 @@ const Employee = ({ profile }) => {
                 </span>
                 <div class="absolute inset-0 border-2 border-blue-700 rounded-full opacity-0 group-hover:opacity-30 transition-opacity duration-300"></div>
               </button>
-              
-              <button 
-                class="group relative inline-flex items-center justify-center w-8 h-8 overflow-hidden rounded-full bg-green-50 hover:bg-green-100 transition-all duration-300 ease-in-out" 
-                id="editBtn_${data?._id}"
-                title="Edit"
-              >
-                <span class="text-green-500 transition-colors duration-300 ease-in-out group-hover:text-green-600">
-                  <i class="fas fa-edit text-sm"></i>
-                </span>
-                <div class="absolute inset-0 border-2 border-green-500 rounded-full opacity-0 group-hover:opacity-30 transition-opacity duration-300"></div>
-              </button>
             </div>`;
           },
         },
@@ -197,7 +359,7 @@ const Employee = ({ profile }) => {
         const editBtn = row.querySelector(`#editBtn_${data?._id}`);
         if (editBtn) {
           editBtn.addEventListener("click", () => {
-            handleEditClick(data); // Open edit modal with selected data
+            handleEditClick(data);
           });
         }
       },
@@ -208,27 +370,164 @@ const Employee = ({ profile }) => {
     return () => {
       table.destroy();
     };
-  }, [employeeData]); // Reinitialize when employeeData changes
+  }, [employeeData, filteredData]);
 
   return (
     <div className="p-4">
-      <PayrollSystemItem data={employeeData} title={"Employee Data"} />
-
-      <div className="flex justify-end items-center">
+      {/* PDF Export Button */}
+      <div className="flex justify-end items-center gap-4 mb-4">
+        <PDFDownloadLink
+          document={
+            <EmployeePdfDocument
+              employees={filteredData.length > 0 ? filteredData : employeeData}
+              filters={filters}
+              title="Employee Report"
+            />
+          }
+          fileName="employee_report.pdf"
+        >
+          {({ loading }) => (
+            <button
+              className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-500 transition-colors"
+              disabled={loading}
+            >
+              {loading ? "Preparing document..." : "Export to PDF"}
+            </button>
+          )}
+        </PDFDownloadLink>
         <button
-          className="bg-blue-500 py-2 px-4 rounded-md text-white font-semibold hover:bg-blue-400"
+          className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-400"
           onClick={() => setCreateModalOpen(true)}
         >
           Create Employee
         </button>
       </div>
-      <div className="overflow-x-auto">
-        <table id="myTable" className="display">
-          <thead className="bg-blue-500 text-white"></thead>
-        </table>
+
+      {/* Content to be exported to PDF */}
+      <div ref={pdfRef}>
+        {/* PDF Header (hidden on screen) */}
+        <div className="pdf-only" style={{ display: "none" }}>
+          <h1 className="text-2xl font-bold mb-2">Employee Report</h1>
+          <p className="text-gray-500 text-sm">
+            Generated on: {new Date().toLocaleDateString()}
+          </p>
+          <hr className="my-2 border-gray-200" />
+        </div>
+
+        <PayrollSystemItem data={employeeData} title={"Employee Data"} />
+
+        {/* Filter Section */}
+        <div className="bg-white p-4 rounded-lg shadow-md mb-4">
+          <h3 className="text-lg font-semibold mb-3">Filters</h3>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Search
+              </label>
+              <input
+                type="text"
+                name="search"
+                value={filters.search}
+                onChange={handleFilterChange}
+                placeholder="Search by name, email or ID"
+                className="w-full p-2 border rounded"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Department
+              </label>
+              <select
+                name="department"
+                value={filters.department}
+                onChange={handleFilterChange}
+                className="w-full p-2 border rounded"
+              >
+                <option value="">All Departments</option>
+                {getUniqueValues("department").map((dept) => (
+                  <option key={dept} value={dept}>
+                    {dept}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Position
+              </label>
+              <select
+                name="position"
+                value={filters.position}
+                onChange={handleFilterChange}
+                className="w-full p-2 border rounded"
+              >
+                <option value="">All Positions</option>
+                {getUniqueValues("position").map((pos) => (
+                  <option key={pos} value={pos}>
+                    {pos}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Status
+              </label>
+              <select
+                name="status"
+                value={filters.status}
+                onChange={handleFilterChange}
+                className="w-full p-2 border rounded"
+              >
+                <option value="">All Statuses</option>
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+                <option value="On Leave">On Leave</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="flex justify-end mt-3">
+            <button
+              onClick={resetFilters}
+              className="bg-gray-500 text-white px-4 py-2 rounded-md mr-2 hover:bg-gray-600"
+            >
+              Reset Filters
+            </button>
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table id="myTable" className="display">
+            <thead className="bg-blue-500 text-white"></thead>
+          </table>
+        </div>
+
+        {/* PDF Footer (hidden on screen) */}
+        <div className="pdf-only" style={{ display: "none" }}>
+          <hr className="my-2 border-gray-200" />
+          <p className="text-gray-500 text-xs text-center">
+            Confidential Employee Data - © {new Date().getFullYear()} Your
+            Company
+          </p>
+        </div>
       </div>
 
-      {/* Create Employee Modal */}
+      {/* Hide PDF-only elements on screen */}
+      <style>
+        {`
+          @media screen {
+            .pdf-only {
+              display: none !important;
+            }
+          }
+        `}
+      </style>
+
+      {/* All existing modals remain unchanged */}
       {createModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white rounded-lg p-5 w-1/3">
@@ -335,7 +634,6 @@ const Employee = ({ profile }) => {
         </div>
       )}
 
-      {/* Edit Employee Modal */}
       {editModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white rounded-lg p-5 w-1/3">
@@ -348,7 +646,7 @@ const Employee = ({ profile }) => {
                 value={newEmployeeData.employeeId}
                 onChange={handleInputChange}
                 className="w-full p-2 border rounded"
-                disabled // Disable editing of Employee ID
+                disabled
               />
               <input
                 type="text"
@@ -458,7 +756,6 @@ const Employee = ({ profile }) => {
         </div>
       )}
 
-      {/* Delete Modal */}
       {showModal && modalType === "delete" && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white rounded-lg p-5 w-1/3">
@@ -493,7 +790,6 @@ const Employee = ({ profile }) => {
         </div>
       )}
 
-      {/* Detail Modal */}
       {showModal && modalType === "detail" && selectedData && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 p-6">
           <div className="bg-white rounded-lg p-6 w-full max-w-2xl shadow-lg overflow-hidden">

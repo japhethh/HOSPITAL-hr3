@@ -95,7 +95,7 @@ const login = async (req, res) => {
       from: "mtrcb32130@gmail.com",
       to: user.email,
       subject: "Your 2FA Verification Code",
-      text: `Your OTP code is: ${otp}. It is valid for 10 minutes.`,
+      text: `Your OTP code is: ${otp}. It is valid for 5 minutes.`,
     };
 
     await transporter.sendMail(mailOptions);

@@ -47,6 +47,8 @@ function AdminPage() {
   };
 
   const handleLogout = async () => {
+
+    console.log("Loggin out...")
     try {
       await axios.post(
         `${urlAPI}/auth-api/logout`,
@@ -127,18 +129,19 @@ function AdminPage() {
                 </NavLink>
               </li>
               <ul className="menu menu-vertical">
+                 <li className="font-semibold">
+                  <NavLink to="timeAndAttendance" activeClassName="bg-gray-700">
+                    <IoMdTime />
+                    Time And Attendance
+                  </NavLink>
+                </li>
                 <li className="font-semibold">
                   <NavLink to="payrollSystem" activeClassName="bg-gray-700">
                     <PiPlantDuotone />
                     Payroll System
                   </NavLink>
                 </li>
-                <li className="font-semibold">
-                  <NavLink to="timeAndAttendance" activeClassName="bg-gray-700">
-                    <IoMdTime />
-                    Time And Attendance
-                  </NavLink>
-                </li>
+               
                 <li className="font-semibold">
                   <NavLink to="employee" activeClassName="bg-gray-700">
                     <CgProfile />
