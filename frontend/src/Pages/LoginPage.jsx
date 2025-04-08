@@ -91,7 +91,7 @@ const LoginPage = () => {
 
   return (
     <div className="min-h-screen flex">
-      {/* Left section for logo and login */}
+      {/* Left section for logo and logins */}
       <div className="w-1/2 bg-white flex flex-col items-center justify-center p-8">
         {/* Logo */}
         <div className="mb-6">
