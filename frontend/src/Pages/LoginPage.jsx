@@ -82,7 +82,7 @@ const LoginPage = () => {
       if (error.response) {
         setError(error.response.data.message);
       } else {
-        setError("An error occurred during OTP verification");
+        setError("An error occurred during OTP verifications");
       }
     } finally {
       setIsLoading(false);
