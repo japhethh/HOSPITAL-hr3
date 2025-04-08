@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import backgroundImg from "../../assets/Nodado.jpg";
@@ -49,7 +49,7 @@ const LoginPage = () => {
         setShowOTPModal(true);
       }
     } catch (error) {
-      console.error("Login error:", error);
+      console.error("Login errors:", error);
       if (error.response) {
         setError(error.response.data.message);
       } else {
@@ -82,7 +82,7 @@ const LoginPage = () => {
       if (error.response) {
         setError(error.response.data.message);
       } else {
-        setError("An error occurred during OTP verification");
+        setError("An error occurred during OTP verificationsssss");
       }
     } finally {
       setIsLoading(false);
