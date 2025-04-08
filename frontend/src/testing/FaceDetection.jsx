@@ -10,7 +10,7 @@ function FaceDetection() {
   const detectionIntervalRef = useRef(null);
 
   // State
-  const [mode, setMode] = useState("register");
+  const [mode, setMode] = useState("clock-in");
   const [employeeId, setEmployeeId] = useState("");
   const [message, setMessage] = useState("");
   const [isCameraReady, setIsCameraReady] = useState(false);
@@ -52,24 +52,15 @@ function FaceDetection() {
     }
   };
 
-  // Secure API call
+  // Secure API call with enhanced error handling
   const secureApiCall = async (url, data) => {
-    const csrfToken = document.querySelector(
-      'meta[name="csrf-token"]'
-    )?.content;
-
-    const headers = {
-      "Content-Type": "application/json",
-      "X-Requested-With": "XMLHttpRequest",
-      "X-CSRF-Token": csrfToken || "",
-      "X-Content-Type-Options": "nosniff",
-    };
-
     try {
       const response = await axios.post(url, data, {
-        headers,
+        headers: {
+          "Content-Type": "application/json",
+          "X-Requested-With": "XMLHttpRequest",
+        },
         timeout: 10000,
-        withCredentials: true,
       });
 
       if (!response.data) {
@@ -78,8 +69,13 @@ function FaceDetection() {
 
       return response.data;
     } catch (error) {
-      console.error("API Error:", error);
-      throw error;
+      const errorDetails = {
+        message: error.response?.data?.message || error.message,
+        status: error.response?.status,
+        data: error.response?.data,
+      };
+      console.error("API call failed:", errorDetails);
+      throw new Error(errorDetails.message || "API request failed");
     }
   };
 
@@ -180,7 +176,7 @@ function FaceDetection() {
       try {
         console.log("Loading face detection models...");
 
-        const MODEL_URL = "/models"; // Changed to local models for better security
+        const MODEL_URL = "/models";
 
         await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
         await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
@@ -321,8 +317,6 @@ function FaceDetection() {
 
       const encryptedData = await encryptDescriptor(faceData.descriptor);
 
-      console.log(encryptedData);
-      console.log(faceData.score);
       const response = await secureApiCall(
         `${apiURL}/api/attendance-face/register-face`,
         {
@@ -371,7 +365,11 @@ function FaceDetection() {
       );
 
       if (response.success) {
-        setMessage(`Clocked in as (${response.department})`);
+        setMessage(
+          `Clocked in successfully at ${new Date().toLocaleTimeString()} (${
+            response.department
+          })`
+        );
       } else {
         throw new Error(response.message || "Verification failed");
       }
@@ -383,7 +381,54 @@ function FaceDetection() {
     }
   };
 
-  // Render UI
+  // Handle clock out with enhanced error handling
+  const handleClockOut = async () => {
+    setIsProcessing(true);
+    setMessage("Starting secure face verification for clock out...");
+
+    try {
+      const faceData = await processFaceDetection(videoRef.current);
+      if (!faceData) {
+        setMessage("Could not verify face. Please try again.");
+        setIsProcessing(false);
+        return;
+      }
+
+      console.log("Face detection quality score:", faceData.score);
+      if (faceData.score < 0.6) {
+        setMessage("Face quality too low. Please position face properly.");
+        setIsProcessing(false);
+        return;
+      }
+
+      const encryptedData = await encryptDescriptor(faceData.descriptor);
+      console.log("Prepared encrypted face data");
+
+      const response = await secureApiCall(
+        `${apiURL}/api/attendance-face/clock-out`,
+        {
+          faceData: encryptedData,
+          qualityScore: faceData.score,
+        }
+      );
+
+      if (response.success) {
+        setMessage(
+          `Clocked out successfully at ${new Date().toLocaleTimeString()} (${
+            response.department || "Unknown Department"
+          })`
+        );
+      } else {
+        throw new Error(response.message || "Clock out failed");
+      }
+    } catch (error) {
+      console.error("Clock out error:", error);
+      setMessage(`Error: ${error.message}`);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   return (
     <div className="app-container">
       <h1 className="text-center my-3">Face Recognition Attendance</h1>
@@ -401,6 +446,16 @@ function FaceDetection() {
           onClick={() => setMode("clock-in")}
         >
           Clock In
+        </button>
+        <button
+          className={`px-4 py-2 rounded-md font-semibold transition-colors ${
+            mode === "clock-out"
+              ? "bg-blue-600 text-white"
+              : "bg-gray-200 text-gray-700"
+          }`}
+          onClick={() => setMode("clock-out")}
+        >
+          Clock Out
         </button>
         <button
           className={`px-4 py-2 rounded-md font-semibold transition-colors ${
@@ -466,7 +521,13 @@ function FaceDetection() {
 
       <div className="flex justify-center mt-4">
         <button
-          onClick={mode === "register" ? handleRegister : handleClockIn}
+          onClick={
+            mode === "register"
+              ? handleRegister
+              : mode === "clock-in"
+              ? handleClockIn
+              : handleClockOut
+          }
           disabled={
             !isCameraReady ||
             isProcessing ||
@@ -483,8 +544,10 @@ function FaceDetection() {
             </span>
           ) : mode === "register" ? (
             "Register Face"
-          ) : (
+          ) : mode === "clock-in" ? (
             "Clock In"
+          ) : (
+            "Clock Out"
           )}
         </button>
       </div>
@@ -494,6 +557,8 @@ function FaceDetection() {
           className={`mt-4 mx-auto max-w-md text-center px-4 py-3 rounded ${
             message.includes("Error") || message.includes("failed")
               ? "bg-red-100 text-red-700"
+              : message.includes("Clocked out")
+              ? "bg-blue-100 text-blue-700"
               : "bg-green-100 text-green-700"
           }`}
         >
