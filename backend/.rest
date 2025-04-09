@@ -17,7 +17,6 @@ POST http://localhost:8053/api/employees
 Content-Type: application/json
 
 {
-  "employeeId": "EMP001",
   "firstName": "Mark",
   "lastName": "Padilia",
   "email": "mark@example.com",
@@ -64,7 +63,7 @@ Content-Type: application/json
 }
 
 ### Delete Employee
-DELETE http://localhost:8051/api/employees/EMP001
+DELETE http://localhost:8053/api/employees/67f5b6ceda6520add0a10a99
 
 ### 2. PayrollSystem APIs
 

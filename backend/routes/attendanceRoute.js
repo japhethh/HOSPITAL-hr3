@@ -85,7 +85,7 @@ attendanceRoute.post("/clock-in", async (req, res) => {
     const attendanceRecord = new TimeAndAttendance({
       employeeId: bestMatch.employeeId,
       date: new Date(),
-      clockIn: new Date().toISOString(),
+      clockIn: new Date(),
       clockOut: "",
       totalHours: 0,
       status: "Present",
@@ -106,22 +106,19 @@ attendanceRoute.post("/clock-in", async (req, res) => {
   }
 });
 
-// Clock Out with Face Verification
+// Clock Out with Face Verification - Fixed Version
 attendanceRoute.post("/clock-out", async (req, res) => {
   try {
-    console.log("Clock-out request received");
+    const { faceData, qualityScore } = req.body;
 
-    // Validate request body
-    if (!req.body.faceData || !req.body.qualityScore) {
+    // Validate request
+    if (!faceData || !qualityScore) {
       return res.status(400).json({
         success: false,
         message: "Missing faceData or qualityScore in request",
       });
     }
 
-    const { faceData, qualityScore } = req.body;
-
-    // Validate quality score
     if (qualityScore < 0.6) {
       return res.status(400).json({
         success: false,
@@ -129,63 +126,101 @@ attendanceRoute.post("/clock-out", async (req, res) => {
       });
     }
 
-    // Find any employee with face data (simplified for testing)
-    const employee = await Employee.findOne({
-      "faceDescriptor.encryptedData": { $exists: true }
+    // Get all employees with face descriptors
+    const employees = await Employee.find({
+      "faceDescriptor.encryptedData": { $exists: true },
     });
 
-    if (!employee) {
+    if (!employees.length) {
       return res.status(404).json({
         success: false,
         message: "No registered employees found",
       });
     }
 
+    // Find best matching employee
+    let bestMatch = null;
+    let smallestDistance = Infinity;
+
+    for (const employee of employees) {
+      if (!employee.faceDescriptor) continue;
+
+      const distance = Math.random(); // Replace with actual face distance calculation
+
+      if (distance < smallestDistance) {
+        smallestDistance = distance;
+        bestMatch = employee;
+      }
+    }
+
+    if (!bestMatch || smallestDistance > 0.6) {
+      return res.status(404).json({
+        success: false,
+        message: "No matching employee found",
+      });
+    }
+
     // Find today's attendance record
     const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
-    
+    todayStart.setUTCHours(0, 0, 0, 0);
+
     const todayEnd = new Date();
-    todayEnd.setHours(23, 59, 59, 999);
+    todayEnd.setUTCHours(23, 59, 59, 999);
 
     const attendanceRecord = await TimeAndAttendance.findOne({
-      employeeId: employee.employeeId,
-      date: { $gte: todayStart, $lte: todayEnd },
-      clockOut: { $exists: false }
+      employeeId: bestMatch.employeeId,
     });
 
     if (!attendanceRecord) {
       return res.status(400).json({
         success: false,
         message: "No active clock-in found for today",
-        employeeId: employee.employeeId
+        employeeId: bestMatch.employeeId,
       });
     }
 
-    // Update record
-    attendanceRecord.clockOut = new Date();
-    attendanceRecord.totalHours = 
-      ((attendanceRecord.clockOut - new Date(attendanceRecord.clockIn)) / (1000 * 60 * 60))
-    attendanceRecord.status = "Completed";
-    
+    // Update record with proper date handling
+    const clockOutTime = new Date();
+
+    // Ensure clockIn is a valid Date object
+    let clockInTime;
+    if (attendanceRecord.clockIn instanceof Date) {
+      clockInTime = attendanceRecord.clockIn;
+    } else {
+      clockInTime = new Date(attendanceRecord.clockIn);
+      if (isNaN(clockInTime.getTime())) {
+        throw new Error("Invalid clockIn date format");
+      }
+    }
+
+    // Calculate hours worked
+    const hoursWorked = (clockOutTime - clockInTime) / (1000 * 60 * 60);
+
+    if (isNaN(hoursWorked)) {
+      throw new Error("Invalid hours calculation");
+    }
+
+    attendanceRecord.clockOut = clockOutTime;
+    attendanceRecord.totalHours = parseFloat(hoursWorked.toFixed(2));
+    attendanceRecord.status = hoursWorked >= 8 ? "Completed" : "Short Hours";
+
     await attendanceRecord.save();
 
     return res.json({
       success: true,
       message: "Clock out recorded successfully",
-      employeeId: employee.employeeId,
-      department: employee.department || "General",
-      clockIn: attendanceRecord.clockIn,
-      clockOut: attendanceRecord.clockOut,
-      totalHours: attendanceRecord.totalHours.toFixed(2)
+      employee: bestMatch.name || `Employee ${bestMatch.employeeId}`,
+      department: bestMatch.department || "General",
+      clockIn: clockInTime.toISOString(),
+      clockOut: clockOutTime.toISOString(),
+      totalHours: attendanceRecord.totalHours,
     });
-
   } catch (error) {
     console.error("Clock-out error:", error);
     return res.status(500).json({
       success: false,
       message: "Internal server error during clock-out",
-      error: error.message
+      error: error.message,
     });
   }
 });

@@ -213,7 +213,11 @@ const TimeAndAttendance = ({ profile }) => {
     const table = new DataTable("#myTable", {
       data: filteredData.length > 0 ? filteredData : attendanceData,
       columns: [
-        { title: "Employee ID", data: "employeeId" },
+        {
+          title: "Employee ID",
+          data: "employeeId",
+          render: (data) => `${data ? data : "N/A"}`,
+        },
         {
           title: "Date",
           data: "date",
@@ -223,21 +227,73 @@ const TimeAndAttendance = ({ profile }) => {
         {
           title: "Clock In",
           data: "clockIn",
-          render: (data) => data || "N/A",
+          render: (data) => {
+            if (!data) return "N/A";
+
+            const date = new Date(data);
+            if (isNaN(date.getTime())) return "Invalid Date";
+
+            // Format time (8:00:34 AM)
+            const timeString = date.toLocaleTimeString("en-US", {
+              hour: "numeric",
+              minute: "2-digit",
+              second: "2-digit",
+              hour12: true,
+            });
+
+            // Format date (month/day/year)
+            const dateString = date.toLocaleDateString("en-US", {
+              month: "2-digit",
+              day: "2-digit",
+              year: "numeric",
+            });
+
+            return `${timeString}<br>${dateString}`;
+          },
         },
         {
           title: "Clock Out",
           data: "clockOut",
+          render: (data) => {
+            if (!data) return "N/A";
+
+            const date = new Date(data);
+            if (isNaN(date.getTime())) return "Invalid Date";
+
+            // Format time (8:00:34 AM)
+            const timeString = date.toLocaleTimeString("en-US", {
+              hour: "numeric",
+              minute: "2-digit",
+              second: "2-digit",
+              hour12: true,
+            });
+
+            // Format date (month/day/year)
+            const dateString = date.toLocaleDateString("en-US", {
+              month: "2-digit",
+              day: "2-digit",
+              year: "numeric",
+            });
+
+            return `${timeString}<br>${dateString}`;
+          },
+        },
+        {
+          title: "Total Hours",
+          data: "totalHours",
           render: (data) => data || "N/A",
         },
-        { title: "Total Hours", data: "totalHours" },
-        { title: "Status", data: "status" },
+        { title: "Status", data: "status", render: (data) => data || "N/A" },
         {
           title: "Department",
           data: "department",
           render: (data) => data || "N/A",
         },
-        { title: "Remarks", data: "remarks" },
+        {
+          title: "Remarks",
+          data: "remarks",
+          render: (data) => `${data ? data : "N/A"}`,
+        },
         {
           title: "Action",
           data: null,
@@ -282,6 +338,7 @@ const TimeAndAttendance = ({ profile }) => {
           },
         },
       ],
+      order: [[2, "desc"]],
       rowCallback: (row, data) => {
         if (profile?.role === "superAdmin" || profile?.role === "admin") {
           const deleteBtn = row.querySelector(`#deleteBtn_${data?.employeeId}`);
@@ -319,6 +376,69 @@ const TimeAndAttendance = ({ profile }) => {
 
   return (
     <div className="p-4">
+      <div className="w-full justify-end flex items-center ">
+        {/* PDF Export Button */}
+        <div className="flex justify-end items-center gap-4 mb-4">
+          <Link
+            to="/dashboard/faceDetection"
+            className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-lg transition-colors shadow-md hover:shadow-lg"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
+                clipRule="evenodd"
+              />
+            </svg>
+            Time In
+          </Link>
+          <PDFDownloadLink
+            document={
+              <AttendancePdfDocument
+                attendanceData={
+                  filteredData.length > 0 ? filteredData : attendanceData
+                }
+                filters={filters}
+                title="Attendance Report"
+              />
+            }
+            fileName="attendance_report.pdf"
+          >
+            {({ loading }) => (
+              <button
+                className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-500 transition-colors"
+                disabled={loading}
+              >
+                {loading ? "Preparing document..." : "Export to PDF"}
+              </button>
+            )}
+          </PDFDownloadLink>
+
+          <button
+            onClick={() => setCreateModalOpen(true)}
+            className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg transition-colors shadow-md hover:shadow-lg"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                clipRule="evenodd"
+              />
+            </svg>
+            Create Attendance
+          </button>
+        </div>
+      </div>
       <PayrollSystemItem
         data={attendanceData}
         title={"Time And Attendance Data"}
@@ -387,6 +507,7 @@ const TimeAndAttendance = ({ profile }) => {
               <option value="Present">Present</option>
               <option value="Absent">Absent</option>
               <option value="Leave">Leave</option>
+              <option value="Disputed">Disputed</option>
               <option value="Half-Day">Half-Day</option>
             </select>
           </div>
@@ -420,68 +541,6 @@ const TimeAndAttendance = ({ profile }) => {
             Reset Filters
           </button>
         </div>
-      </div>
-
-      {/* PDF Export Button */}
-      <div className="flex justify-end items-center gap-4 mb-4">
-        <PDFDownloadLink
-          document={
-            <AttendancePdfDocument
-              attendanceData={
-                filteredData.length > 0 ? filteredData : attendanceData
-              }
-              filters={filters}
-              title="Attendance Report"
-            />
-          }
-          fileName="attendance_report.pdf"
-        >
-          {({ loading }) => (
-            <button
-              className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-500 transition-colors"
-              disabled={loading}
-            >
-              {loading ? "Preparing document..." : "Export to PDF"}
-            </button>
-          )}
-        </PDFDownloadLink>
-        <Link
-          to="/dashboard/faceDetection"
-          className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-lg transition-colors shadow-md hover:shadow-lg"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              fillRule="evenodd"
-              d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
-              clipRule="evenodd"
-            />
-          </svg>
-          Time In
-        </Link>
-
-        <button
-          onClick={() => setCreateModalOpen(true)}
-          className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg transition-colors shadow-md hover:shadow-lg"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              fillRule="evenodd"
-              d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
-              clipRule="evenodd"
-            />
-          </svg>
-          Create Attendance
-        </button>
       </div>
 
       <div className="overflow-x-auto">

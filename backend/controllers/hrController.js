@@ -1,3 +1,4 @@
+const counterModel = require("../models/Counter");
 const {
   // Employee
   createEmployee,
@@ -52,7 +53,27 @@ const {
 // Employee Controllers
 const createEmployeeController = async (req, res) => {
   try {
-    const employee = await createEmployee(req.body);
+    // Get or create the counter and increment the sequence
+    const counter = await counterModel.findOneAndUpdate(
+      { _id: "employeeNumber" }, // Using a fixed ID for the counter
+      { $inc: { sequence_value: 1 } },
+      { new: true, upsert: true }
+    );
+
+    // Format the sequence with leading zeros (e.g., 1 → "001")
+    const paddedNumber = counter.sequence_value.toString().padStart(3, "0");
+
+    // Generate the employee ID (e.g., "EMP001")
+    const employeeId = `EMP${paddedNumber}`;
+    console.log("Generated Employee ID:", employeeId);
+
+    // Add the generated employeeId to the request body
+    const attendanceData = {
+      ...req.body,
+      employeeId, // Include the auto-generated ID
+    };
+
+    const employee = await createEmployee(attendanceData);
     res.status(201).json(employee);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -192,13 +213,14 @@ const deletePayrollSystemController = async (req, res) => {
 // TimeAndAttendance Controllers
 const createTimeAndAttendanceController = async (req, res) => {
   try {
+    // Create the attendance record
     const attendance = await createTimeAndAttendance(req.body);
+
     res.status(201).json(attendance);
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
 };
-
 const getTimeAndAttendancesController = async (req, res) => {
   try {
     const attendances = await getTimeAndAttendances();

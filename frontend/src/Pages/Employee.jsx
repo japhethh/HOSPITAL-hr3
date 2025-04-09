@@ -533,14 +533,14 @@ const Employee = ({ profile }) => {
           <div className="bg-white rounded-lg p-5 w-1/3">
             <h3 className="text-lg font-bold font-Roboto">Create Employee</h3>
             <div className="space-y-4 mt-4">
-              <input
+              {/* <input
                 type="text"
                 name="employeeId"
                 placeholder="Employee ID"
                 value={newEmployeeData.employeeId}
                 onChange={handleInputChange}
                 className="w-full p-2 border rounded"
-              />
+              /> */}
               <input
                 type="text"
                 name="firstName"

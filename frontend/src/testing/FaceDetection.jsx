@@ -364,11 +364,13 @@ function FaceDetection() {
         }
       );
 
+      console.log(response);
+
       if (response.success) {
         setMessage(
-          `Clocked in successfully at ${new Date().toLocaleTimeString()} (${
-            response.department
-          })`
+          `Clocked in successfully at ${
+            response?.employee
+          } ${new Date().toLocaleTimeString()} (${response.department})`
         );
       } else {
         throw new Error(response.message || "Verification failed");
@@ -394,7 +396,6 @@ function FaceDetection() {
         return;
       }
 
-      console.log("Face detection quality score:", faceData.score);
       if (faceData.score < 0.6) {
         setMessage("Face quality too low. Please position face properly.");
         setIsProcessing(false);
@@ -402,7 +403,6 @@ function FaceDetection() {
       }
 
       const encryptedData = await encryptDescriptor(faceData.descriptor);
-      console.log("Prepared encrypted face data");
 
       const response = await secureApiCall(
         `${apiURL}/api/attendance-face/clock-out`,
@@ -414,9 +414,11 @@ function FaceDetection() {
 
       if (response.success) {
         setMessage(
-          `Clocked out successfully at ${new Date().toLocaleTimeString()} (${
+          `Clocked out successfully at ${new Date(
+            response.clockOut
+          ).toLocaleTimeString()} (${
             response.department || "Unknown Department"
-          })`
+          }) - Total hours: ${response.totalHours}`
         );
       } else {
         throw new Error(response.message || "Clock out failed");
@@ -428,7 +430,6 @@ function FaceDetection() {
       setIsProcessing(false);
     }
   };
-
   return (
     <div className="app-container">
       <h1 className="text-center my-3">Face Recognition Attendance</h1>

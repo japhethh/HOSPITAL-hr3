@@ -2,6 +2,32 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { apiURL } from "../context/Store";
 import { toast } from "react-toastify";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement,
+  PointElement,
+  LineElement,
+} from "chart.js";
+import { Bar, Pie, Line } from "react-chartjs-2";
+
+// Register ChartJS components
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement,
+  PointElement,
+  LineElement
+);
 
 const OverView = () => {
   const [employeeCount, setEmployeeCount] = useState(10);
@@ -10,6 +36,11 @@ const OverView = () => {
   const [pendingLeaveCount, setPendingLeaveCount] = useState(899);
   const [pendingSalaryCount, setPendingSalaryCount] = useState(623);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [chartData, setChartData] = useState({
+    leaveStatus: {},
+    salaryStatus: {},
+    monthlySalaryData: {},
+  });
 
   // Function to open the modal
   const openModal = () => {
@@ -20,6 +51,7 @@ const OverView = () => {
   const closeModal = () => {
     setIsModalOpen(false);
   };
+
   // Mock data for leave requests
   const mockLeaveRequests = [
     {
@@ -138,6 +170,30 @@ const OverView = () => {
           salaryResponse.data.filter((salary) => salary.status === "Pending")
             .length
         );
+
+        // Process data for charts
+        const leaveStatusCount = leaveResponse.data.reduce((acc, leave) => {
+          acc[leave.status] = (acc[leave.status] || 0) + 1;
+          return acc;
+        }, {});
+
+        const salaryStatusCount = salaryResponse.data.reduce((acc, salary) => {
+          acc[salary.status] = (acc[salary.status] || 0) + 1;
+          return acc;
+        }, {});
+
+        // Mock monthly salary data (in a real app, you'd get this from your API)
+        const monthlySalaryData = {
+          labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+          paid: [50000, 55000, 60000, 58000, 62000, 65000],
+          pending: [10000, 12000, 8000, 15000, 9000, 11000],
+        };
+
+        setChartData({
+          leaveStatus: leaveStatusCount,
+          salaryStatus: salaryStatusCount,
+          monthlySalaryData,
+        });
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
         // Use mock data if API fails
@@ -150,11 +206,99 @@ const OverView = () => {
           mockSalaryRecords.filter((salary) => salary.status === "Pending")
             .length
         );
+
+        // Process mock data for charts
+        const leaveStatusCount = mockLeaveRequests.reduce((acc, leave) => {
+          acc[leave.status] = (acc[leave.status] || 0) + 1;
+          return acc;
+        }, {});
+
+        const salaryStatusCount = mockSalaryRecords.reduce((acc, salary) => {
+          acc[salary.status] = (acc[salary.status] || 0) + 1;
+          return acc;
+        }, {});
+
+        const monthlySalaryData = {
+          labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+          paid: [50000, 55000, 60000, 58000, 62000, 65000],
+          pending: [10000, 12000, 8000, 15000, 9000, 11000],
+        };
+
+        setChartData({
+          leaveStatus: leaveStatusCount,
+          salaryStatus: salaryStatusCount,
+          monthlySalaryData,
+        });
       }
     };
 
     fetchDashboardData();
   }, []);
+
+  // Chart configurations
+  const leaveStatusChart = {
+    labels: Object.keys(chartData.leaveStatus || {}),
+    datasets: [
+      {
+        label: "Leave Requests",
+        data: Object.values(chartData.leaveStatus || {}),
+        backgroundColor: [
+          "rgba(255, 99, 132, 0.6)",
+          "rgba(54, 162, 235, 0.6)",
+          "rgba(255, 206, 86, 0.6)",
+        ],
+        borderColor: [
+          "rgba(255, 99, 132, 1)",
+          "rgba(54, 162, 235, 1)",
+          "rgba(255, 206, 86, 1)",
+        ],
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  const salaryStatusChart = {
+    labels: Object.keys(chartData.salaryStatus || {}),
+    datasets: [
+      {
+        label: "Salary Records",
+        data: Object.values(chartData.salaryStatus || {}),
+        backgroundColor: [
+          "rgba(75, 192, 192, 0.6)",
+          "rgba(255, 159, 64, 0.6)",
+          "rgba(153, 102, 255, 0.6)",
+        ],
+        borderColor: [
+          "rgba(75, 192, 192, 1)",
+          "rgba(255, 159, 64, 1)",
+          "rgba(153, 102, 255, 1)",
+        ],
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  const monthlySalaryTrendsChart = {
+    labels: chartData.monthlySalaryData.labels || [],
+    datasets: [
+      {
+        label: "Paid Salaries",
+        data: chartData.monthlySalaryData.paid || [],
+        borderColor: "rgba(75, 192, 192, 1)",
+        backgroundColor: "rgba(75, 192, 192, 0.2)",
+        tension: 0.1,
+        fill: true,
+      },
+      {
+        label: "Pending Salaries",
+        data: chartData.monthlySalaryData.pending || [],
+        borderColor: "rgba(255, 159, 64, 1)",
+        backgroundColor: "rgba(255, 159, 64, 0.2)",
+        tension: 0.1,
+        fill: true,
+      },
+    ],
+  };
 
   return (
     <div className="p-6">
@@ -205,6 +349,112 @@ const OverView = () => {
               0
             )}
           </p>
+        </div>
+      </div>
+
+      {/* Charts Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        {/* Leave Status Pie Chart */}
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <h2 className="text-xl font-bold mb-4">Leave Request Status</h2>
+          <div className="h-64">
+            <Pie
+              data={leaveStatusChart}
+              options={{
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: {
+                    position: "bottom",
+                  },
+                },
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Salary Status Pie Chart */}
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <h2 className="text-xl font-bold mb-4">Salary Record Status</h2>
+          <div className="h-64">
+            <Pie
+              data={salaryStatusChart}
+              options={{
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: {
+                    position: "bottom",
+                  },
+                },
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Monthly Salary Trends Line Chart */}
+        <div className="bg-white p-6 rounded-lg shadow-md lg:col-span-2">
+          <h2 className="text-xl font-bold mb-4">Monthly Salary Trends</h2>
+          <div className="h-64">
+            <Line
+              data={monthlySalaryTrendsChart}
+              options={{
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: {
+                    position: "bottom",
+                  },
+                },
+                scales: {
+                  y: {
+                    beginAtZero: true,
+                  },
+                },
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Leave Types Bar Chart */}
+        <div className="bg-white p-6 rounded-lg shadow-md lg:col-span-2">
+          <h2 className="text-xl font-bold mb-4">Leave Types Distribution</h2>
+          <div className="h-64">
+            <Bar
+              data={{
+                labels: leaveRequests.map((leave) => leave.leaveType),
+                datasets: [
+                  {
+                    label: "Leave Duration (Days)",
+                    data: leaveRequests.map((leave) => {
+                      const start = new Date(leave.startDate);
+                      const end = new Date(leave.endDate);
+                      return Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+                    }),
+                    backgroundColor: "rgba(54, 162, 235, 0.6)",
+                  },
+                ],
+              }}
+              options={{
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: {
+                    display: false,
+                  },
+                },
+                scales: {
+                  y: {
+                    beginAtZero: true,
+                    title: {
+                      display: true,
+                      text: "Duration (Days)",
+                    },
+                  },
+                },
+              }}
+            />
+          </div>
         </div>
       </div>
 
