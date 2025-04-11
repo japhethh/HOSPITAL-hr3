@@ -157,6 +157,7 @@ const PayrollSystem = ({ profile }) => {
         hireDate: "",
         status: "Active",
       });
+      toast.success("Payroll created successfully!");
     } catch (error) {
       console.log(error?.response.data.message);
       toast.error("Failed to create payroll");
@@ -251,30 +252,41 @@ const PayrollSystem = ({ profile }) => {
           render: (data) => `${data ? data : "N/A"}`,
         },
         {
-          title: "Email",
-          data: "email",
-          render: (data) => `${data ? data : "N/A"}`,
-        },
-        {
-          title: "Phone",
-          data: "phone",
-          render: (data) => `${data ? data : "N/A"}`,
-        },
-        {
-          title: "Leave",
-          data: "leave",
+          title: "Position",
+          data: "position",
           render: (data) => `${data ? data : "N/A"}`,
         },
         ...(profile?.role === "superAdmin" || profile?.role === "admin"
           ? [
               {
-                title: "Salary",
-                data: "salary",
-                render: (data) => `${data ? data : "N/A"}`,
+                title: "Net Pay",
+                data: "netPay",
+                render: (data) => `₱${data ? data.toLocaleString() : "0"}`,
               },
             ]
           : []),
-        { title: "Status", data: "status" },
+        {
+          title: "Status",
+          data: "status",
+          render: (data) => {
+            const statusClass =
+              data === "processed"
+                ? "bg-green-100 text-green-800"
+                : data === "pending"
+                ? "bg-yellow-100 text-yellow-800"
+                : "bg-gray-100 text-gray-800";
+            return `<span class="px-2 py-1 rounded-full text-xs ${statusClass}">${data}</span>`;
+          },
+        },
+        {
+          title: "Payment Date",
+          data: "paymentDate",
+          render: (data) => {
+            if (!data) return "N/A";
+            const date = new Date(data);
+            return date.toLocaleDateString();
+          },
+        },
         {
           title: "Action",
           data: null,
@@ -373,7 +385,7 @@ const PayrollSystem = ({ profile }) => {
     return () => {
       table.destroy();
     };
-  }, [inventoryData, filteredData]);
+  }, [inventoryData, filteredData, profile]);
 
   return (
     <div className="p-4">
@@ -604,7 +616,7 @@ const PayrollSystem = ({ profile }) => {
                 onChange={handleInputChange}
                 className="w-full p-2 border rounded"
               >
-                <option value="">Leave</option>
+                <option value="">Select Leave</option>
                 <option value="sick">Sick</option>
                 <option value="vacation">Vacation</option>
                 <option value="maternity">Maternity</option>
@@ -795,7 +807,7 @@ const PayrollSystem = ({ profile }) => {
                 onChange={handleInputChange}
                 className="w-full p-2 border rounded"
               >
-                <option value="">Leave</option>
+                <option value="">Select Leave</option>
                 <option value="sick">Sick</option>
                 <option value="vacation">Vacation</option>
                 <option value="maternity">Maternity</option>
@@ -854,6 +866,7 @@ const PayrollSystem = ({ profile }) => {
             </h1>
             <div className="overflow-y-scroll h-72">
               <div className="space-y-3">
+                {/* Basic Info */}
                 <div className="flex border rounded-lg overflow-hidden">
                   <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
                     <label htmlFor="employeeId" className="label">
@@ -894,56 +907,134 @@ const PayrollSystem = ({ profile }) => {
                     {selectedData?.position}
                   </div>
                 </div>
+
+                {/* Pay Period */}
                 <div className="flex border rounded-lg overflow-hidden">
                   <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
-                    <label htmlFor="email" className="label">
-                      Email
+                    <label htmlFor="payPeriod" className="label">
+                      Pay Period
                     </label>
                   </div>
                   <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
-                    {selectedData?.email}
+                    {new Date(
+                      selectedData?.payPeriodStart
+                    ).toLocaleDateString()}{" "}
+                    -{" "}
+                    {new Date(selectedData?.payPeriodEnd).toLocaleDateString()}
+                  </div>
+                </div>
+
+                {/* Salary Info */}
+                <div className="flex border rounded-lg overflow-hidden">
+                  <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
+                    <label htmlFor="baseSalary" className="label">
+                      Base Salary
+                    </label>
+                  </div>
+                  <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
+                    ₱{selectedData?.baseSalary?.toLocaleString()}
+                  </div>
+                </div>
+
+                {/* Hours Info */}
+                <div className="flex border rounded-lg overflow-hidden">
+                  <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
+                    <label htmlFor="hoursWorked" className="label">
+                      Hours Worked
+                    </label>
+                  </div>
+                  <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
+                    {selectedData?.hoursWorked} hours
                   </div>
                 </div>
                 <div className="flex border rounded-lg overflow-hidden">
                   <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
-                    <label htmlFor="phone" className="label">
-                      Phone
+                    <label htmlFor="overtimeHours" className="label">
+                      Overtime Hours
                     </label>
                   </div>
                   <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
-                    {selectedData?.phone}
+                    {selectedData?.overtimeHours} hours
                   </div>
                 </div>
                 <div className="flex border rounded-lg overflow-hidden">
                   <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
-                    <label htmlFor="leave" className="label">
-                      Leave
+                    <label htmlFor="leaveDays" className="label">
+                      Leave Days
                     </label>
                   </div>
                   <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
-                    {selectedData?.leave}
+                    {selectedData?.leaveDays} day(s)
                   </div>
                 </div>
-                <div className="flex border rounded-lg overflow-hidden">
-                  <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
-                    <label htmlFor="salary" className="label">
-                      Salary
+
+                {/* Earnings Breakdown */}
+                <div className="border rounded-lg overflow-hidden">
+                  <div className="w-full bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
+                    <label className="label">Earnings</label>
+                  </div>
+                  {selectedData?.items
+                    ?.filter((item) => item.type === "earning")
+                    .map((item, index) => (
+                      <div key={index} className="flex">
+                        <div className="w-1/2 p-2 pl-4 flex items-center">
+                          {item.description}
+                        </div>
+                        <div className="w-1/2 p-2 flex justify-end items-center pr-4">
+                          ₱{item.amount?.toLocaleString()}
+                        </div>
+                      </div>
+                    ))}
+                  <div className="flex border-t">
+                    <div className="w-1/2 p-2 pl-4 flex items-center font-semibold">
+                      Total Earnings
+                    </div>
+                    <div className="w-1/2 p-2 flex justify-end items-center pr-4 font-semibold">
+                      ₱{selectedData?.totalEarnings?.toLocaleString()}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Deductions Breakdown */}
+                <div className="border rounded-lg overflow-hidden">
+                  <div className="w-full bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
+                    <label className="label">Deductions</label>
+                  </div>
+                  {selectedData?.items
+                    ?.filter((item) => item.type === "deduction")
+                    .map((item, index) => (
+                      <div key={index} className="flex">
+                        <div className="w-1/2 p-2 pl-4 flex items-center">
+                          {item.description}
+                        </div>
+                        <div className="w-1/2 p-2 flex justify-end items-center pr-4">
+                          ₱{item.amount?.toLocaleString()}
+                        </div>
+                      </div>
+                    ))}
+                  <div className="flex border-t">
+                    <div className="w-1/2 p-2 pl-4 flex items-center font-semibold">
+                      Total Deductions
+                    </div>
+                    <div className="w-1/2 p-2 flex justify-end items-center pr-4 font-semibold">
+                      ₱{selectedData?.totalDeductions?.toLocaleString()}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Net Pay */}
+                <div className="flex border rounded-lg overflow-hidden bg-blue-50">
+                  <div className="w-1/2 bg-blue-100 p-2 flex justify-center items-center font-Roboto font-medium">
+                    <label htmlFor="netPay" className="label">
+                      Net Pay
                     </label>
                   </div>
-                  <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
-                    {selectedData?.salary}
+                  <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center text-blue-700">
+                    ₱{selectedData?.netPay?.toLocaleString()}
                   </div>
                 </div>
-                <div className="flex border rounded-lg overflow-hidden">
-                  <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
-                    <label htmlFor="hireDate" className="label">
-                      Hire Date
-                    </label>
-                  </div>
-                  <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
-                    {selectedData?.hireDate}
-                  </div>
-                </div>
+
+                {/* Payment Info */}
                 <div className="flex border rounded-lg overflow-hidden">
                   <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
                     <label htmlFor="status" className="label">
@@ -952,6 +1043,18 @@ const PayrollSystem = ({ profile }) => {
                   </div>
                   <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
                     {selectedData?.status}
+                  </div>
+                </div>
+                <div className="flex border rounded-lg overflow-hidden">
+                  <div className="w-1/2 bg-gray-100 p-2 flex justify-center items-center font-Roboto font-medium">
+                    <label htmlFor="paymentDate" className="label">
+                      Payment Date
+                    </label>
+                  </div>
+                  <div className="w-1/2 p-4 flex font-semibold text-xl justify-center items-center">
+                    {selectedData?.paymentDate
+                      ? new Date(selectedData.paymentDate).toLocaleDateString()
+                      : "N/A"}
                   </div>
                 </div>
               </div>

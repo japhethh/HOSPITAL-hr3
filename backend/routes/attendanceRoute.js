@@ -3,6 +3,7 @@ const attendanceRoute = express.Router();
 const { euclideanDistance } = require("face-api.js");
 const Employee = require("../models/Employee");
 const TimeAndAttendance = require("../models/TimeAndAttendance");
+const PayrollSystem = require("../models/PayrollSystem");
 
 // Register Employee Face
 attendanceRoute.post("/register-face", async (req, res) => {
@@ -205,6 +206,40 @@ attendanceRoute.post("/clock-out", async (req, res) => {
     attendanceRecord.status = hoursWorked >= 8 ? "Completed" : "Short Hours";
 
     await attendanceRecord.save();
+
+    
+    const payrollRecord = await PayrollSystem.findOne({
+      employeeId: bestMatch.employeeId,
+    })
+
+    if(!payrollRecord){
+      const newPayrollRecord = new PayrollSystem({
+        employeeId:bestMatch.employeeId,
+        name: bestMatch.name || `Employee ${bestMatch.employeeId}`,
+        department: bestMatch.department || "",
+        position: bestMatch.position || "",
+        email: bestMatch.email || "",
+        phone: bestMatch.phone || "",
+        leave: bestMatch.leave || "",
+        salary: bestMatch.salary || 0,
+        hireDate: bestMatch.hireDate || new Date(),
+        payPeriodStart: new Date(),
+        payPeriodEnd: new Date(),
+        baseSalary: bestMatch.salary || 0,
+        netPay: 0,
+        status:"draft",
+        paymentDate: new Date(),
+        hoursWorked: attendanceRecord.totalHours,
+        overtimeHours: 0, 
+        leaveDays: 0,
+      })
+
+      newPayrollRecord.save()
+    }else{
+      
+    }
+    console.log(payrollRecord)
+
 
     return res.json({
       success: true,

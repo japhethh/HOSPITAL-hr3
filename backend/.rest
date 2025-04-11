@@ -71,22 +71,36 @@ DELETE http://localhost:8053/api/employees/67f5b6ceda6520add0a10a99
 POST http://localhost:8053/api/payroll-systems
 Content-Type: application/json
 
-
-
- {
-    "employeeId": "EMP002",
-    "name": "Jane Smith",
-    "department": "Cardiology",
-    "position": "Cardiologist",
-    "email": "janesmith@example.com",
-    "phone": "987-654-3210",
-    "salary": 140000,
-    "hireDate": "2016-09-20",
-    "status": "Active"
-  }
+  {
+  "employeeId": "EMP006",
+  "name": "Tyco",
+  "department": "Administration",
+  "position": "Administration",
+  "email": "tyco@gmail.com",
+  "phone": "09511431876",
+  "hireDate": "2025-04-09T00:00:00.000Z",
+  "payPeriodStart": "2025-04-01T00:00:00.000Z",
+  "payPeriodEnd": "2025-04-15T00:00:00.000Z",
+  "baseSalary": 22000,
+  "salary": 22000,
+  "items": [
+    { "description": "Basic Pay", "amount": 22000, "type": "earning" },
+    { "description": "Allowance", "amount": 1500, "type": "earning" },
+    { "description": "SSS", "amount": 500, "type": "deduction" },
+    { "description": "Pag-IBIG", "amount": 200, "type": "deduction" }
+  ],
+  "totalEarnings": 23500,
+  "totalDeductions": 700,
+  "netPay": 22800,
+  "status": "processed",
+  "paymentDate": "2025-04-16T00:00:00.000Z",
+  "hoursWorked": 90,
+  "overtimeHours": 4,
+  "leaveDays": 0
+}
 
 ### Get all PayrollSystem records
-GET http://localhost:8051/api/payroll-systems
+GET http://localhost:8053/api/payroll-systems
 
 ### Get PayrollSystem record by ID
 GET http://localhost:8051/api/payroll-systems/EMP001
@@ -107,7 +121,7 @@ Content-Type: application/json
 }
 
 ### Delete PayrollSystem record
-DELETE http://localhost:8051/api/payroll-systems/EMP001
+DELETE http://localhost:8053/api/payroll-systems/67f8f900298799357d2e9950
 
 ### 3. EmployeeEngagement APIs
 
@@ -308,3 +322,8 @@ Content-Type: application/json
 
 ### Delete Salary record
 DELETE http://localhost:8051/api/salaries/EMP001
+
+
+   
+### GET ALL PAYROLL new 
+GET http://localhost:8053/api/payroll

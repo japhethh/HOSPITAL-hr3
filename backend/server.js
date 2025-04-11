@@ -11,6 +11,7 @@ const authRoutes = require("./routes/authRoutes");
 const accountRoutes = require("./routes/accountRoutes");
 const hrRoutes = require("./routes/hrRoutes");
 const attendanceRoute = require("./routes/attendanceRoute");
+const payrollRoutes = require("./routes/payrollRouter");
 
 //Middlewares
 const app = express();
@@ -49,6 +50,7 @@ app.use("/auth-api", authRoutes);
 app.use("/accounts", accountRoutes);
 app.use("/api", hrRoutes);
 app.use("/api/attendance-face", attendanceRoute);
+app.use("/api/payroll", payrollRoutes);
 
 // Connect to MongoDB
 mongoose
