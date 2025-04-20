@@ -3,7 +3,7 @@ import axios from "axios";
 export const apiURL =
   window.location.hostname === "localhost"
     ? "http://localhost:8053"
-    : "https://hospital-hr3.onrender.com";
+    : "http://backend-hr3.nodadogenhospital.com";
 
 const useBearStore = create((set) => ({
   bears: 0,
