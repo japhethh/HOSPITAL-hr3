@@ -16,21 +16,42 @@ const LoginPage = () => {
   const urlAPI = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
-    // Check if already logged in
-    const verify = async () => {
+    // Check if already logged in and OTP verified
+    const verifyAuth = async () => {
       try {
-        const response = await axios.get(`${urlAPI}/auth-api/protected`, {
+        // First check protected route
+        const protectedResponse = await axios.get(
+          `${urlAPI}/auth-api/protected`,
+          {
+            withCredentials: true,
+          }
+        );
+
+        // Then check user status including OTP verification
+        const userResponse = await axios.get(`${urlAPI}/auth-api/user`, {
           withCredentials: true,
         });
-        if (response) {
+
+        if (protectedResponse && userResponse.data.user.otpVerified) {
           navigate("/dashboard/overview");
         }
       } catch (error) {
-        console.log(error.response);
+        console.log(
+          "Verification error:",
+          error.response?.data?.message || error.message
+        );
+        // Clear token if OTP isn't verified
+        if (error.response?.status === 403) {
+          await axios.post(
+            `${urlAPI}/auth-api/logout`,
+            {},
+            { withCredentials: true }
+          );
+        }
       }
     };
-    verify();
-  }, []);
+    verifyAuth();
+  }, [navigate, urlAPI]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -45,13 +66,12 @@ const LoginPage = () => {
       );
 
       if (response.data.success) {
-        // Show OTP modal instead of navigating directly
         setShowOTPModal(true);
       }
     } catch (error) {
-      console.error("Login errors:", error);
+      console.error("Login error:", error);
       if (error.response) {
-        setError(error.response.data.message);
+        setError(error.response.data.message || "Login failed");
       } else {
         setError("An error occurred during login");
       }
@@ -75,23 +95,39 @@ const LoginPage = () => {
       if (response.data.success) {
         // Store the token and navigate to dashboard
         localStorage.setItem("token", response.data.token);
-        navigate("/dashboard");
+        navigate("/dashboard/overview");
       }
     } catch (error) {
       console.error("OTP verification error:", error);
       if (error.response) {
-        setError(error.response.data.message);
+        setError(error.response.data.message || "OTP verification failed");
       } else {
-        setError("An error occurred during OTP verificationsss");
+        setError("An error occurred during OTP verification");
       }
     } finally {
       setIsLoading(false);
     }
   };
 
+  const handleCancelOTP = async () => {
+    try {
+      // Logout the user when they cancel OTP verification
+      await axios.post(
+        `${urlAPI}/auth-api/logout`,
+        {},
+        { withCredentials: true }
+      );
+      setShowOTPModal(false);
+      setOtp("");
+      setError("");
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  };
+
   return (
     <div className="min-h-screen flex">
-      {/* Left section for logo and logins */}
+      {/* Left section for logo and login */}
       <div className="w-1/2 bg-white flex flex-col items-center justify-center p-8">
         {/* Logo */}
         <div className="mb-6">
@@ -158,6 +194,7 @@ const LoginPage = () => {
                 onChange={(e) => setOtp(e.target.value)}
                 className="w-full p-2 border rounded mb-4"
                 required
+                maxLength={6}
               />
               {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
               <div className="flex justify-between">
@@ -171,11 +208,7 @@ const LoginPage = () => {
                 <button
                   type="button"
                   className="text-gray-500 px-4 py-2 rounded hover:bg-gray-100"
-                  onClick={() => {
-                    setShowOTPModal(false);
-                    setOtp("");
-                    setError("");
-                  }}
+                  onClick={handleCancelOTP}
                 >
                   Cancel
                 </button>
