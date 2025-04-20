@@ -17,12 +17,7 @@ const payrollRoutes = require("./routes/payrollRouter");
 const app = express();
 
 const server = http.createServer(app);
-// const io = new Server(server, {
-//   cors: {
-//     origin: "https://hr3.nodadogenhospital.com",
-// http://localhost:5173
-//   },
-// });
+
 const io = new Server(server, {
   cors: {
     origin: "https://hr3.nodadogenhospital.com",
@@ -35,6 +30,7 @@ app.use(
     credentials: true,
   })
 );
+
 app.use(cookieParser());
 app.use(express.json());
 app.use((req, res, next) => {

@@ -1,9 +1,11 @@
 import { create } from "zustand";
 import axios from "axios";
+// export const apiURL = "https://hospital-hr3.onrender.com";
+// https://backend-hr3.nodadogenhospital.com
 export const apiURL =
   window.location.hostname === "localhost"
     ? "http://localhost:8053"
-    : "http://backend-hr3.nodadogenhospital.com";
+    : "https://hospital-hr3.onrender.com";
 
 const useBearStore = create((set) => ({
   bears: 0,
