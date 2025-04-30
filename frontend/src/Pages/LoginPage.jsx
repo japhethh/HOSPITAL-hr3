@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import backgroundImg from "../../assets/Nodado.jpg";
 import Logo from "../../assets/Nodado.jfif";

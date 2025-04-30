@@ -202,9 +202,9 @@ function AdminPage() {
                 </button>
               </div>
               <div className="navbar-center">
-                <a className="btn btn-ghost text-xl">
+                {/* <a className="btn btn-ghost text-xl">
                   BACKUP AND RECOVERY SYSTEM
-                </a>
+                </a> */}
               </div>
               <div className="navbar-end">
                 <h1

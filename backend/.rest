@@ -39,7 +39,6 @@ Content-Type: application/json
 ### Get all Employees
 GET http://localhost:8053/api/employees
 
-
 ### GET ACCOUNT USER
 GET http://localhost:8053/accounts/get-accounts
 ### Get Employee by ID
@@ -62,7 +61,7 @@ Content-Type: application/json
 }
 
 ### Delete Employee
-DELETE http://localhost:8053/api/employees/67f5b6ceda6520add0a10a99
+DELETE http://localhost:8053/api/employees/68052ce7e5b10ac018634fca
 
 ### 2. PayrollSystem APIs
 
@@ -140,7 +139,7 @@ Content-Type: application/json
 }
 
 ### Get all EmployeeEngagement records
-GET http://localhost:8051/api/employee-engagements
+GET http://localhost:8053/api/employee-engagements
 
 ### Get EmployeeEngagement record by ID
 GET http://localhost:8051/api/employee-engagements/EMP001
@@ -160,7 +159,7 @@ Content-Type: application/json
 }
 
 ### Delete EmployeeEngagement record
-DELETE http://localhost:8051/api/employee-engagements/EMP001
+DELETE http://localhost:8053/api/employee-engagements/dd
 
 ### 4. TimeAndAttendance APIs
 
