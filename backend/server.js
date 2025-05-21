@@ -20,13 +20,13 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: "https://hr3.nodadogenhospital.com",
+    origin: "https://hospital-hr3.onrender.com",
   },
 });
 
 app.use(
   cors({
-    origin: "https://hr3.nodadogenhospital.com",
+    origin: "https://hospital-hr3.onrender.com",
     credentials: true,
   })
 );
