@@ -1,4 +1,3 @@
-require("dotenv").config();
 
 const express = require("express");
 const mongoose = require("mongoose");
@@ -7,6 +6,7 @@ const cookieParser = require("cookie-parser");
 const { Server } = require("socket.io");
 const http = require("http");
 
+require("dotenv").config();
 const authRoutes = require("./routes/authRoutes");
 const accountRoutes = require("./routes/accountRoutes");
 const hrRoutes = require("./routes/hrRoutes");
