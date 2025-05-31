@@ -5,11 +5,11 @@ POST http://localhost:8053/auth-api/register
 Content-Type: application/json
 
 {
-  "username": "adrey",
-  "role":"superAdmin",
-  "email":"helloworld32130@gmail.com",
-  "password":"adrey",
-  "fullName":"adrey"
+  "username": "admins",
+  "role":"admin",
+  "email":"jayveeabat123@gmail.com",
+  "password":"admins",
+  "fullName":"admins"
 }
 ### Create a new Employee
 POST http://localhost:8053/api/employees
